@@ -1,0 +1,4 @@
+project-context.md
+.claude/*
+!.claude/prompts/
+!.claude/prompts/*.md
