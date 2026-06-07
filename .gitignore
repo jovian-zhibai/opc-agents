@@ -1,4 +1,27 @@
+# OPC Agents .gitignore
+
+# 运行时状态（不提交）
+scripts/state.json
+
+# 知识库（独立仓库，不提交）
 project-context.md
-.claude/*
-!.claude/prompts/
-!.claude/prompts/*.md
+
+# Playwright MCP 日志（不提交）
+.playwright-mcp/
+
+# OpenCode 自动生成（不提交）
+.opencode/.gitignore
+.opencode/node_modules/
+.opencode/package.json
+.opencode/package-lock.json
+
+# 归档的技能（不提交，太大）
+skills-archive/
+
+# API 密钥配置（安全：不提交）
+opencode.json
+# 长任务产出（运行时产物，不提交）
+.opencode/work/*
+!.opencode/work/.gitkeep
+# Playwright MCP 日志（不提交）
+.playwright-mcp/
