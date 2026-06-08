@@ -14,7 +14,7 @@
 | **Advisor** | 智囊 | mimo-v2.5-pro | all | 分析质疑、决策辅助 |
 | **Dev** | 工程师 | mimo-v2.5-pro | subagent | 代码实现 |
 | **Product** | 产品经理 | mimo-v2.5-pro | subagent | 需求澄清（苏格拉底式） |
-| **UIUX** | 设计师 | mimo-v2.5-pro | subagent | 设计体验 |
+| **UI-UX** | 设计师 | mimo-v2.5-pro | subagent | 设计体验 |
 | **Guardian** | 哨兵 | mimo-v2.5-pro | subagent | 安全审查 |
 | **Growth** | 增长 | mimo-v2.5-pro | subagent | 内容运营 |
 | **QA** | 测试 | mimo-v2.5 | subagent | 测试验证 |
@@ -49,31 +49,32 @@
 
 ## 开发流水线
 
-需求澄清(Product) → 设计(UIUX) → 技术方案(Dev+Advisor) → 实现(Dev) → 验证(QA) → 归档(Director)
+需求澄清(Product) → 设计(UI-UX) → 技术方案(Dev+Advisor) → 实现(Dev) → 验证(QA) → 归档(Director)
 
 ## 文件结构
 
 ```
+opencode.json               MiMo provider + 模型配置（不提交，含 API key）
 .opencode/
-├── agents/              10 个 Agent 定义
-├── skills/              3 个 OPC 专属技能
-└── work/                长任务工作区（运行时产出，不提交）
-opencode.json            Provider + 模型配置（不提交，含 API key）
-.env.example             环境变量模板
+├── agents/                 10 个 Agent 定义
+├── skills/                 275 个技能（社区 + OPC 专属）
+└── work/                   长任务工作区（运行时产出，不提交）
 scripts/
-├── auto-check.sh        每日自检
-├── quality-gate.sh      质量门禁
-└── state-manager.py     状态管理（含中断恢复）
-CLAUDE.md                系统规则
-templates/               项目模板
+├── auto-check.sh           每日自检
+├── quality-gate.sh         质量门禁
+└── state-manager.py        状态管理（含中断恢复）
+CLAUDE.md                   系统规则
+templates/                  项目模板
 ```
 
 ## 环境变量
 
 ```bash
-cp .env.example .env
-# 编辑 .env，填入你的 MIMO_API_KEY
+# 必填
 export MIMO_API_KEY="your_key"
+
+# 可选（默认 ~/code/opc/opc-knowledge）
+export OPC_KNOWLEDGE_PATH="/path/to/opc-knowledge"
 ```
 
 ## 中断恢复

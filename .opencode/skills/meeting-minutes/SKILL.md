@@ -13,7 +13,7 @@ auto_load: false
 
 ## 会议纪要格式
 
-写入 $OPC_KNOWLEDGE_PATH/09-Conversations/ 目录（默认 /Users/souljian/code/opc/opc-knowledge）。
+写入 $OPC_KNOWLEDGE_PATH/09-Conversations/ 目录（默认 ~/code/opc/opc-knowledge）。
 
 文件命名：{YYYY-MM-DD}-{议题简述}.md
 

@@ -14,7 +14,7 @@ auto_load: false
 
 ## 搜索路径
 
-知识库根目录：$OPC_KNOWLEDGE_PATH（默认 /Users/souljian/code/opc/opc-knowledge）
+知识库根目录：$OPC_KNOWLEDGE_PATH（默认 ~/code/opc/opc-knowledge）
 
 | 目录 | 搜索内容 | 场景 |
 |------|----------|------|

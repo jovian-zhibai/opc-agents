@@ -1,17 +1,20 @@
 #!/bin/bash
 # OPC 每日自检脚本
 
+# 知识库路径：优先使用环境变量，默认用本地路径（MCP 不可用时兜底）
+KNOWLEDGE="${OPC_KNOWLEDGE_PATH:-/Users/souljian/code/opc/opc-knowledge}"
+
 echo "=== OPC 每日自检 ==="
 echo ""
 
 # 知识库 Inbox
 echo "📥 Inbox 待处理："
-INBOX="${OPC_KNOWLEDGE_PATH:-/Users/souljian/code/opc/opc-knowledge}/00-Inbox"
+INBOX="$KNOWLEDGE/00-Inbox"
 if [ -d "$INBOX" ]; then
     count=$(ls "$INBOX" 2>/dev/null | wc -l | tr -d ' ')
     echo "  $count 条待整理"
 else
-    echo "  目录不存在"
+    echo "  目录不存在: $INBOX"
 fi
 
 echo ""
@@ -31,7 +34,6 @@ echo ""
 
 # 过期知识
 echo "⚠️ 过期知识（>180天）："
-KNOWLEDGE="${OPC_KNOWLEDGE_PATH:-/Users/souljian/code/opc/opc-knowledge}"
 if [ -d "$KNOWLEDGE" ]; then
     expired=$(find "$KNOWLEDGE" -name "*.md" -mtime +180 2>/dev/null | head -10)
     if [ -n "$expired" ]; then
@@ -40,7 +42,7 @@ if [ -d "$KNOWLEDGE" ]; then
         echo "  无过期知识"
     fi
 else
-    echo "  知识库目录不存在"
+    echo "  知识库目录不存在: $KNOWLEDGE"
 fi
 
 echo ""

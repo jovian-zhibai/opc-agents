@@ -14,7 +14,7 @@ auto_load: true
 
 ## 检查项目
 
-1. **知识库 Inbox** — 扫描 $OPC_KNOWLEDGE_PATH/00-Inbox/ 未处理内容（默认 /Users/souljian/code/opc/opc-knowledge）
+1. **知识库 Inbox** — 扫描 $OPC_KNOWLEDGE_PATH/00-Inbox/ 未处理内容（默认 ~/code/opc/opc-knowledge）
 2. **活跃任务** — 扫描 $OPC_KNOWLEDGE_PATH/10-Tasks/ 中活跃任务
 3. **Git 状态** — 检查当前项目的未提交变更
 4. **过期知识** — 超过 180 天的 active 知识需复审

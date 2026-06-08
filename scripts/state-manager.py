@@ -5,25 +5,122 @@ import json
 import os
 import sys
 from datetime import datetime
+from contextlib import contextmanager
 
 STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "state.json")
+BACKUP_FILE = STATE_FILE + ".bak"
+LOCK_FILE = STATE_FILE + ".lock"
+
+_EMPTY_STATE = {"events": [], "current_task": None, "history": []}
 
 
 def ensure_dir():
     os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
 
 
+@contextmanager
+def file_lock():
+    """基于临时锁文件的简单文件锁，防止并发写入。"""
+    import time
+
+    ensure_dir()
+    max_wait = 10  # 最长等待秒数
+    waited = 0
+
+    while waited < max_wait:
+        try:
+            # O_CREAT | O_EXCL 原子创建，已存在则抛 FileExistsError
+            fd = os.open(LOCK_FILE, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            os.write(fd, str(os.getpid()).encode())
+            os.close(fd)
+            break
+        except FileExistsError:
+            # 检查锁文件是否过期（超过 30 秒视为僵尸锁）
+            try:
+                lock_age = time.time() - os.path.getmtime(LOCK_FILE)
+                if lock_age > 30:
+                    os.remove(LOCK_FILE)
+                    continue
+            except OSError:
+                pass
+            time.sleep(0.1)
+            waited += 0.1
+    else:
+        # 超时，强制清除僵尸锁后继续
+        try:
+            os.remove(LOCK_FILE)
+        except OSError:
+            pass
+
+    try:
+        yield
+    finally:
+        try:
+            os.remove(LOCK_FILE)
+        except OSError:
+            pass
+
+
+def _try_load_json(filepath):
+    """尝试加载 JSON 文件，失败返回 None。"""
+    try:
+        with open(filepath) as f:
+            data = json.load(f)
+            # 基本结构校验
+            if isinstance(data, dict):
+                return data
+    except (json.JSONDecodeError, ValueError, OSError):
+        pass
+    return None
+
+
 def load():
-    if os.path.exists(STATE_FILE):
-        with open(STATE_FILE) as f:
-            return json.load(f)
-    return {"events": [], "current_task": None, "history": []}
+    """加载状态，state.json 损坏时自动从 .bak 恢复。"""
+    # 尝试加载主文件
+    data = _try_load_json(STATE_FILE)
+    if data is not None:
+        return data
+
+    # 主文件损坏或不存在，尝试备份
+    if os.path.exists(STATE_FILE) and os.path.exists(BACKUP_FILE):
+        print("⚠️ state.json 损坏，尝试从备份恢复...")
+        backup_data = _try_load_json(BACKUP_FILE)
+        if backup_data is not None:
+            print("✅ 已从 state.json.bak 恢复")
+            # 恢复后立即写回主文件
+            _raw_save(backup_data)
+            return backup_data
+        print("⚠️ 备份也损坏，已重置为空状态")
+    elif os.path.exists(STATE_FILE):
+        print("⚠️ state.json 损坏，无备份可用，已重置为空状态")
+
+    return dict(_EMPTY_STATE)
 
 
-def save(state):
+def _raw_save(state):
+    """直接写入文件（内部用，不加锁不备份）。"""
     ensure_dir()
     with open(STATE_FILE, "w") as f:
         json.dump(state, f, indent=2, ensure_ascii=False)
+
+
+def save(state):
+    """安全保存：加锁 → 备份 → 写入。"""
+    with file_lock():
+        # 先备份当前文件（如果存在且有效）
+        if os.path.exists(STATE_FILE):
+            if _try_load_json(STATE_FILE) is not None:
+                try:
+                    # 原子性：先写临时文件再 rename
+                    tmp_bak = BACKUP_FILE + ".tmp"
+                    with open(STATE_FILE, "r") as src:
+                        with open(tmp_bak, "w") as dst:
+                            dst.write(src.read())
+                    os.replace(tmp_bak, BACKUP_FILE)
+                except OSError:
+                    pass  # 备份失败不阻塞主流程
+
+        _raw_save(state)
 
 
 def log_event(event_type, data):
