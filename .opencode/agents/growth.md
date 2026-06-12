@@ -1,7 +1,7 @@
 ---
 description: 增长运营，市场调研、内容策略、用户增长、竞品分析、增长漏斗优化
 mode: subagent
-model: mimo/mimo-v2.5-pro
+model: mimo/deepseek-v4-flash
 temperature: 0.3
 steps: 30
 tools:

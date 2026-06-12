@@ -10,21 +10,20 @@
 
 | Agent | 中文名 | 模型 | 模式 | 角色 |
 |-------|--------|------|------|------|
-| **Director** | 总指挥 | mimo-v2.5-pro | primary | 调度决策 |
-| **Advisor** | 智囊 | mimo-v2.5-pro | all | 分析质疑、决策辅助 |
-| **Dev** | 工程师 | mimo-v2.5-pro | subagent | 代码实现 |
-| **Product** | 产品经理 | mimo-v2.5-pro | subagent | 需求澄清（苏格拉底式） |
-| **UI-UX** | 设计师 | mimo-v2.5-pro | subagent | 设计体验 |
-| **Guardian** | 哨兵 | mimo-v2.5-pro | subagent | 安全审查 |
-| **Growth** | 增长 | mimo-v2.5-pro | subagent | 内容运营 |
-| **QA** | 测试 | mimo-v2.5 | subagent | 测试验证 |
-| **Ops** | 运维 | mimo-v2.5 | subagent | 部署监控 |
-| **Finance** | 财务 | mimo-v2.5 | subagent | 记账合规 |
+| **Director** | 总指挥 | deepseek-v4-flash | primary | 调度决策 |
+| **Advisor** | 智囊 | deepseek-v4-flash | all | 分析质疑、决策辅助 |
+| **Dev** | 工程师 | deepseek-v4-flash | subagent | 代码实现 |
+| **Product** | 产品经理 | deepseek-v4-flash | subagent | 需求澄清（苏格拉底式） |
+| **UI-UX** | 设计师 | deepseek-v4-flash | subagent | 设计体验 |
+| **Guardian** | 哨兵 | deepseek-v4-flash | subagent | 安全审查 |
+| **Growth** | 增长 | deepseek-v4-flash | subagent | 内容运营 |
+| **QA** | 测试 | deepseek-v4-flash | subagent | 测试验证 |
+| **AgentManager** | 管理者 | deepseek-v4-flash | subagent | Agent 生命周期管理 |
+| **Finance** | 财务 | deepseek-v4-flash | subagent | 记账合规 |
 
 ## 模型分配原则
 
-- **mimo-v2.5-pro**：需要"读懂代码或人"的 Agent（7 个）
-- **mimo-v2.5**：需要"跑工具或流程"的 Agent（3 个）
+- **deepseek-v4-flash**（全部 Agent）：1M 上下文
 
 ## 快速开始
 
@@ -54,7 +53,7 @@
 ## 文件结构
 
 ```
-opencode.json               MiMo provider + 模型配置（不提交，含 API key）
+opencode.json               MiMo provider + 模型配置（可提交版本管理）
 .opencode/
 ├── agents/                 10 个 Agent 定义
 ├── skills/                 275 个技能（社区 + OPC 专属）

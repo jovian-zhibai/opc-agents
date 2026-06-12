@@ -1,7 +1,7 @@
 ---
 description: 测试工程师，质量守门员，运行测试、验证修复、质量把关、测试方法论、自动化测试、质量度量
 mode: subagent
-model: mimo/mimo-v2.5
+model: mimo/deepseek-v4-flash
 temperature: 0.1
 steps: 20
 tools:

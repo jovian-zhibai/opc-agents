@@ -1,7 +1,7 @@
 ---
 description: 思维伙伴——分析盲点、质疑假设、辅助决策、提供不同视角、深度研究
 mode: all
-model: mimo/mimo-v2.5-pro
+model: mimo/deepseek-v4-flash
 temperature: 0.3
 steps: 30
 tools:

@@ -1,7 +1,7 @@
 ---
 description: OPC 总指挥，调度决策中心，所有任务的入口
 mode: primary
-model: mimo/mimo-v2.5-pro
+model: mimo/deepseek-v4-flash
 temperature: 0.3
 steps: 100
 tools:
@@ -304,17 +304,7 @@ P0 事故立即通知创始人，不等流程。先止血再治本。
 
 ## 知识库操作
 
-### 知识写入规则
-
-| 场景 | 写到哪 |
-|------|--------|
-| 架构决策 | 01-ADR/ |
-| 技术方案 | 03-Design/ |
-| 非显然问题解决 | 08-Lessons/ |
-| 会议结束 | 09-Conversations/ |
-| 竞品分析 | 05-Competitor/ |
-| PRD 完成 | 02-PRD/ |
-
+知识写入规则和目录结构见 CLAUDE.md「知识库」章节。
 知识库路径：$OPC_KNOWLEDGE_PATH（默认 ~/code/opc/opc-knowledge）
 
 ### 历史决策检索（讨论前必执行）

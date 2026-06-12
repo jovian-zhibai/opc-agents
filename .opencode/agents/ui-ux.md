@@ -1,7 +1,7 @@
 ---
 description: UI/UX 设计师，界面设计、用户体验、设计系统、交互原型、可访问性
 mode: subagent
-model: mimo/mimo-v2.5-pro
+model: mimo/deepseek-v4-flash
 temperature: 0.4
 steps: 40
 tools:

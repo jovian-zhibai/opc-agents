@@ -1,7 +1,7 @@
 ---
 description: 风险哨兵，安全扫描、代码级安全审查、技术债识别、性能分析、定期巡检、OWASP 审查、威胁建模
 mode: subagent
-model: mimo/mimo-v2.5-pro
+model: mimo/deepseek-v4-flash
 temperature: 0.1
 steps: 25
 tools:

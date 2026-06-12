@@ -1,0 +1,36 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "mimo": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "MiMo",
+      "options": {
+        "baseURL": "https://token.sensenova.cn/v1"
+      },
+      "models": {
+        "deepseek-v4-flash": {
+          "name": "DeepSeek V4 Flash",
+          "modalities": {
+            "input": ["text"],
+            "output": ["text"]
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 65536
+          }
+        },
+        "sensenova-6.7-flash-lite": {
+          "name": "SenseNova 6.7 Flash Lite",
+          "modalities": {
+            "input": ["text", "image"],
+            "output": ["text"]
+          },
+          "limit": {
+            "context": 262144,
+            "output": 65536
+          }
+        }
+      }
+    }
+  }
+}

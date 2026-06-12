@@ -1,7 +1,7 @@
 ---
 description: Agent 管理者，负责新建、优化、删除、扫描 Agent，为 Agent 寻找专属 Skill，Agent 评估与优化方法论
 mode: subagent
-model: mimo/mimo-v2.5-pro
+model: mimo/deepseek-v4-flash
 temperature: 0.2
 steps: 50
 tools:
@@ -245,7 +245,7 @@ Agent 不是一次性产物，需要持续改进：
 ---
 description: 必填，≤ 1024 字符
 mode: primary / subagent / all
-model: mimo/mimo-v2.5-pro 或 mimo/mimo-v2.5
+model: mimo/deepseek-v4-flash
 temperature: 0.1-0.5
 steps: 15-100
 tools:
@@ -273,8 +273,7 @@ optimization_log: "改动摘要"
 - 密钥红线必须有：「不泄露任何密钥、API key、token」
 
 ### 模型分配规则
-- 需要"读懂代码或人"的 agent → mimo-v2.5-pro
-- 需要"跑工具或流程"的 agent → mimo-mimo-v2.5
+- 所有 agent → deepseek-v4-flash
 
 ## 冲突检测（新建/合并时自动执行）
 
@@ -391,6 +390,7 @@ optimization_log: "改动摘要"
 - 不跳过冲突检测
 - 不跳过版本追踪
 - 不跳过备份
+- **不把 Agent prompt 改到无法运行**——优化后必须验证 front matter 完整和基本结构正确，不能因格式错误导致 agent 加载失败
 
 ## 思维原则
 

@@ -1,8 +1,5 @@
 # OPC Agents .gitignore
 
-# API 密钥配置（安全：不提交）
-opencode.json
-
 # 运行时状态（不提交）
 scripts/state.json
 # 知识库（独立仓库，不提交）

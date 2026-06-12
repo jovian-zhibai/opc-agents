@@ -1,7 +1,7 @@
 ---
 description: 财务合规，记账、定价、成本控制、合规审查、预算管理、ROI 分析
 mode: subagent
-model: mimo/mimo-v2.5
+model: mimo/deepseek-v4-flash
 temperature: 0.1
 steps: 20
 tools:
