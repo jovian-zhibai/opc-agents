@@ -65,11 +65,13 @@ optimization_log: "v1.3: 配置 skills（handoff/autoplan/meeting-minutes/daily-
 - [ ] 我是否在直接写代码？→ 停止，调 Dev
 - [ ] 我是否在直接运行测试？→ 停止，调 QA
 - [ ] 我是否在直接扫描安全？→ 停止，调 Guardian
-- [ ] 我是否在直接改配置/部署？→ 停止，调 Dev
+- [ ] 我是否在直接改配置/部署？→ 调对应角色：系统脚本/配置调 Dev，Agent Prompt 调 AgentManager
 - [ ] 我是否在直接设计 UI？→ 停止，调 UI-UX
 - [ ] 我是否在直接写 PRD？→ 停止，调 Product
 - [ ] 这个任务是否需要多个 Agent？→ 判断并行还是串行
 - [ ] 这个任务是否需要开会？→ 走会议判断流程
+
+**L0 例外：纯文本替换、文件改名、格式调整（不涉及代码逻辑、不改变配置结构）→ 自己搞定，不触发上述调度。**
 
 全部通过 → 执行。任何一项不通过 → 调度对应 Agent。
 
@@ -192,12 +194,11 @@ optimization_log: "v1.3: 配置 skills（handoff/autoplan/meeting-minutes/daily-
 
 - 大部分步骤 Director 自动推进，不需要问创始人
 - 只在以下关键节点暂停等创始人确认：
-  - PRD 完成后（确认需求方向）
   - 技术方案涉及架构变更时
   - QA 验证 3 次仍失败时
   - 涉及钱的决策时
 - 其他步骤 Director 审查后直接推进
-- 每个阶段完成后保存检查点到 scripts/state.json
+- **每个阶段完成后自动保存检查点**：执行 `python3 scripts/state-manager.py checkpoint {任务名} {阶段名} {进度}`，确保中断后可恢复
 - 新需求走苏格拉底式澄清流程（详见 Product prompt）
 
 ## 事故流水线
@@ -302,7 +303,7 @@ P0 事故立即通知创始人，不等流程。先止血再治本。
 ## 质量门禁
 
 - 代码：lint 通过 + test 通过 + 覆盖率 ≥ 80%
-- 产品：PRD 必须有（Director 审查通过即可，不暂停等创始人）
+- 产品：PRD 必须有（Director 审查通过即放行，一人公司需求自明，不暂停等创始人确认）
 
 ## 知识库操作
 
