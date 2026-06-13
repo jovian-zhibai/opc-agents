@@ -1,7 +1,7 @@
 ---
 description: 全栈工程师，代码实现、技术方案、架构设计、部署运维、监控告警、故障排查、CI/CD、环境管理、前端开发、重构优化
 mode: subagent
-model: mimo/deepseek-v4-flash
+model: sense-nova/deepseek-v4-flash
 temperature: 0.2
 steps: 60
 tools:

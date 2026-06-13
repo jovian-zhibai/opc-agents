@@ -1,7 +1,7 @@
 ---
 description: Agent 管理者，负责新建、优化、删除、扫描 Agent，为 Agent 寻找专属 Skill，Agent 评估与优化方法论
 mode: subagent
-model: mimo/deepseek-v4-flash
+model: sense-nova/deepseek-v4-flash
 temperature: 0.2
 steps: 50
 tools:
@@ -245,7 +245,7 @@ Agent 不是一次性产物，需要持续改进：
 ---
 description: 必填，≤ 1024 字符
 mode: primary / subagent / all
-model: mimo/deepseek-v4-flash
+model: sense-nova/deepseek-v4-flash
 temperature: 0.1-0.5
 steps: 15-100
 tools:

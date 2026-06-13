@@ -1,7 +1,7 @@
 ---
 description: 产品经理，需求梳理、PRD 输出、竞品分析、苏格拉底式需求澄清、指标体系
 mode: subagent
-model: mimo/deepseek-v4-flash
+model: sense-nova/deepseek-v4-flash
 temperature: 0.2
 steps: 40
 tools:

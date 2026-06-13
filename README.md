@@ -6,7 +6,7 @@
 
 ## 架构
 
-1 个主 Agent + 9 个子 Agent：
+1 个主 Agent + 8 个子 Agent：
 
 | Agent | 中文名 | 模型 | 模式 | 角色 |
 |-------|--------|------|------|------|
@@ -56,7 +56,7 @@
 opencode.json               MiMo provider + 模型配置（可提交版本管理）
 .opencode/
 ├── agents/                 10 个 Agent 定义
-├── skills/                 275 个技能（社区 + OPC 专属）
+├── skills/                 社区 + OPC 专属技能
 └── work/                   长任务工作区（运行时产出，不提交）
 scripts/
 ├── auto-check.sh           每日自检
@@ -91,4 +91,3 @@ export OPC_KNOWLEDGE_PATH="/path/to/opc-knowledge"
 - 文档是交付物的一部分
 - 不读取上下文就开工 = 返工
 - 知识有保质期，超过 180 天需复审
-- 需要"判断力"的用 Pro，需要"执行力"的用 Lite

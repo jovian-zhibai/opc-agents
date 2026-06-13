@@ -45,7 +45,7 @@ done
 # 排除 director 自身（它是 primary，不算 subagent）
 SUBAGENTS=()
 for a in "${ACTUAL_AGENTS[@]}"; do
-  mode=$(grep "^mode:" "$AGENTS_DIR/$a.md" 2>/dev/null | awk '{print $2}')
+  mode=$(sed -n '/^---$/,/^---$/p' "$AGENTS_DIR/$a.md" 2>/dev/null | grep "^mode:" | awk '{print $2}' | head -1)
   if [ "$mode" = "subagent" ]; then
     SUBAGENTS+=("$a")
   fi
