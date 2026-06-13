@@ -9,9 +9,11 @@ tools:
   write: true
   edit: false
   bash: true
+  webfetch: false
 permission:
   bash: "allow"
   edit: "deny"
+  webfetch: "deny"
 skills:
   - security-architect
   - cso

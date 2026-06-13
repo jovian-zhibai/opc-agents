@@ -15,7 +15,6 @@ permission:
   edit: "deny"
   webfetch: "allow"
 skills:
-  - content-research-writer
   - khazix-writer
   - wxmp-workflow
   - market-research

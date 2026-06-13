@@ -23,3 +23,13 @@ skills-archive/
 # 长任务产出（运行时产物，不提交）
 .opencode/work/*
 !.opencode/work/.gitkeep
+
+# 环境变量文件（含真实密钥，不提交）
+.env
+.env.local
+.env.production
+# 系统文件
+*.log
+*.swp
+*~
+.DS_Store

@@ -9,9 +9,11 @@ tools:
   edit: true
   write: true
   bash: true
+  webfetch: false
 permission:
   bash: "allow"
   edit: "allow"
+  webfetch: "deny"
 skills:
   - technical-architecture
   - code-review
@@ -411,7 +413,7 @@ optimization_log: "v2.4: 移除已删除的 skill（devops）"
 
 ## 红线
 
-### 从 Dev 继承
+### 通用红线
 - 不泄露任何密钥、API key、token——永远不写入输出、日志或文件
 - 不硬编码密钥和敏感信息
 - 不跳过测试直接合并

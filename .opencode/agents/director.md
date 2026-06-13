@@ -11,6 +11,8 @@ tools:
   bash: true
   webfetch: true
 permission:
+  bash: "allow"
+  edit: "allow"
   webfetch: "allow"
   task:
     "*": "deny"
