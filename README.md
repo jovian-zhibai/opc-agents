@@ -1,93 +1,73 @@
-# OPC Agents
+# OPC 智能系统
 
-一人公司（One Person Company）的 AI Agent 团队系统。
-
-基于 OpenCode 原生 Agent 系统构建，配置驱动 + 智能 Prompt + 自动化。
-
-## 架构
-
-1 个主 Agent + 8 个子 Agent：
-
-| Agent | 中文名 | 模型 | 模式 | 角色 |
-|-------|--------|------|------|------|
-| **Director** | 总指挥 | deepseek-v4-flash | primary | 调度决策 |
-| **Advisor** | 智囊 | deepseek-v4-flash | all | 分析质疑、决策辅助 |
-| **Dev** | 工程师 | deepseek-v4-flash | subagent | 代码实现 |
-| **Product** | 产品经理 | deepseek-v4-flash | subagent | 需求澄清（苏格拉底式） |
-| **UI-UX** | 设计师 | deepseek-v4-flash | subagent | 设计体验 |
-| **Guardian** | 哨兵 | deepseek-v4-flash | subagent | 安全审查 |
-| **Growth** | 增长 | deepseek-v4-flash | subagent | 内容运营 |
-| **QA** | 测试 | deepseek-v4-flash | subagent | 测试验证 |
-| **AgentManager** | 管理者 | deepseek-v4-flash | subagent | Agent 生命周期管理 |
-| **Finance** | 财务 | deepseek-v4-flash | subagent | 记账合规 |
-
-## 模型分配原则
-
-- **deepseek-v4-flash**（全部 Agent）：1M 上下文
+1 个主 Agent（Director）+ 8 个子 Agent，在 OpenCode 中运行。
 
 ## 快速开始
 
-1. Clone 本仓库
-2. 在目录下启动 OpenCode
-3. Director 会自动启动，执行每日自检
+```bash
+# 启动 OpenCode
+opencode
+```
 
-## 交互方式
+## 三种交互方式
 
-- **Tab 切换**：在 Director 和 Advisor 之间切换
-- **@提及**：直接调用某个 Agent（如 `@dev 帮我看这个报错`）
-- **自动调度**：描述任务，Director 自动分配给合适的 Agent
+| 方式 | 怎么做 | 适合 |
+|------|--------|------|
+| **直接说需求** | 输入任务描述，Director 自动分配 | 日常开发、改 Bug、写功能 |
+| **@提及** | `@dev` `@product` `@qa` `@guardian` `@ui-ux` `@growth` `@finance` `@advisor` | 需要特定角色时 |
+| **Tab 切换** | 在 Director 和 Advisor 之间切换 | 想直接和智囊聊天时 |
 
-## 任务分级
+## Agent 速查
 
-| 级别 | 场景 | 调用谁 |
-|------|------|--------|
-| L0 | 格式调整、简单问答 | Director 自己搞定 |
-| L1 | 代码小改、需求分析 | 调 1 个 agent |
-| L2 | 功能开发、技术方案 | 调 2-3 个，走流水线 |
-| L3 | 架构决策、产品方向 | 全员会议，等确认 |
+| Agent | 干什么 | 什么时候用 |
+|-------|--------|-----------|
+| Director | 调度指挥 | 所有任务的入口 |
+| Dev | 写代码、改代码、部署 | 需要写/改/读代码 |
+| Product | 梳理需求、写 PRD | 新想法需要澄清 |
+| UI-UX | 设计界面 | 做页面设计 |
+| QA | 测试、代码审查 | Dev 写完需要验证 |
+| Guardian | 安全扫描、技术债 | 安全检查、巡检 |
+| Growth | 内容策略、增长 | 写文章、做推广 |
+| Finance | 定价、成本、ROI | 算钱 |
+| Advisor | 分析、决策辅助 | 纠结时问怎么选 |
 
-## 开发流水线
+## 常用命令
 
-需求澄清(Product) → 设计(UI-UX) → 技术方案(Dev+Advisor) → 实现(Dev) → 验证(QA) → 归档(Director)
+```
+"帮我写一个登录功能"         → Director 自动走完整流水线
+"检查一下项目安全"           → 调 Guardian
+"这个功能值不值得做"         → 调 Product + Advisor
+"算一下服务器成本"           → 调 Finance
+"自检" / "巡检"              → Director 执行每日自检
+"全面审查这个项目"           → 全 Agent 深度审查
+```
+
+## 流水线
+
+```
+需求 → Product(PRD) → UI-UX(设计) → Dev(技术方案/实现) → QA(测试) → Guardian(安全) → 归档
+```
+
+Director 自动推进，遇到架构变更/P0 漏洞/3 轮 QA 不过才暂停问创始人。
 
 ## 文件结构
 
 ```
-opencode.json               MiMo provider + 模型配置（可提交版本管理）
-.opencode/
-├── agents/                 10 个 Agent 定义
-├── skills/                 社区 + OPC 专属技能
-└── work/                   长任务工作区（运行时产出，不提交）
-scripts/
-├── auto-check.sh           每日自检
-├── quality-gate.sh         质量门禁
-└── state-manager.py        状态管理（含中断恢复）
-CLAUDE.md                   系统规则
-templates/                  项目模板
+.opencode/agents/     ← Agent 定义
+.opencode/skills/     ← Skill 库（200+）
+.opencode/work/       ← 任务产出
+scripts/              ← 自动化脚本
+CLAUDE.md             ← 系统规则（Agent 读的）
+README.md             ← 本文件（人读的）
 ```
 
-## 环境变量
+## 故障排查
 
-```bash
-# 必填
-export MIMO_API_KEY="your_key"
-
-# 可选（默认 ~/code/opc/opc-knowledge）
-export OPC_KNOWLEDGE_PATH="/path/to/opc-knowledge"
-```
-
-## 中断恢复
-
-长任务中断后，新会话启动时 Director 会自动检测未完成的任务并从中断点继续。
-
-## 知识库
-
-通过 MCP 接入 Obsidian，详见 CLAUDE.md 中的知识库配置。
-
-## 原则
-
-- Agent 负责执行层，创始人负责决策层
-- QA 和 Guardian 的首要职责是质疑，不是配合
-- 文档是交付物的一部分
-- 不读取上下文就开工 = 返工
-- 知识有保质期，超过 180 天需复审
+| 问题 | 解法 |
+|------|------|
+| Director 自己干活不调度 | 已修复（v1.6），工具全关。检查 Director 的 tools 全是 false |
+| 子 Agent 不工作 | 检查 OpenCode 是否加载了该 Agent 文件 |
+| 产出文件在哪 | `.opencode/work/{任务名}/` |
+| Skill 报错 | 检查 `.opencode/skills/` 下该 skill 是否存在 |
+| 中断恢复 | 新会话启动后说 "继续上次的" |
+| 会话记录 | `.opencode/work/session-notes.md` — 自动记录踩过的坑 |

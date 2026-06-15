@@ -10,7 +10,7 @@
 |------|------|
 | Provider / 模型 | `opencode.json` |
 | Agent 定义 | `.opencode/agents/*.md` |
-| OPC 专属技能 | `.opencode/skills/` |
+| OPC 技能 + 通用技能库 | `.opencode/skills/`（含 handoff/autoplan 等 OPC 技能 + 200+ 通用 skill） |
 | 自动化脚本 | `scripts/` |
 | 系统规则 | 本文件 |
 
@@ -23,7 +23,7 @@
 ### 质量门禁
 
 - 代码：lint + test 通过，覆盖率 ≥ 80%
-- 产品：PRD 必须有，创始人确认
+- 产品：PRD 必须有（Director 审查通过即放行，一人公司需求自明）
 
 ## 知识库
 
@@ -65,9 +65,10 @@
 
 ## 中断恢复
 
-新会话启动时，检查 scripts/state.json：
-1. 如果有未完成任务 → 读取已完成产出，从中断点继续
-2. 如果没有 → 正常启动
+新会话启动时，Director 调度 Dev 检查 scripts/state.json 和 .opencode/work/session-notes.md：
+1. 如果有未完成任务 → Director 根据 Dev 汇报的已完成产出，从中断点继续
+2. 同时读取 session-notes.md 最后 20 行，避免重复踩坑
+3. 如果没有 → 正常启动
 
 长任务（>30分钟）必须分段保存到 .opencode/work/{任务名}/parts/
 
