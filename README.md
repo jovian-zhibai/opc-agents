@@ -1,35 +1,113 @@
-# OPC 智能系统
+# OPC Agents
 
-1 个主 Agent（Director）+ 8 个子 Agent，在 OpenCode 中运行。
+一人公司（One Person Company）AI Agent 团队系统。
+
+Director + 9 个子 Agent 的调度式协作架构。同时支持 **OpenCode** 和 **Claude Code** 两种运行环境。
 
 ## 快速开始
 
+### 使用 Claude Code
+
 ```bash
-# 启动 OpenCode
-opencode
+cd opc-agents
+# Claude Code 自动加载 CLAUDE.md，Director 开始工作
+# 直接说需求即可
 ```
 
-## 三种交互方式
+### 使用 OpenCode
 
-| 方式 | 怎么做 | 适合 |
-|------|--------|------|
-| **直接说需求** | 输入任务描述，Director 自动分配 | 日常开发、改 Bug、写功能 |
-| **@提及** | `@dev` `@product` `@qa` `@guardian` `@ui-ux` `@growth` `@finance` `@advisor` | 需要特定角色时 |
-| **Tab 切换** | 在 Director 和 Advisor 之间切换 | 想直接和智囊聊天时 |
+```bash
+cd opc-agents
+opencode
+# Director 自动运行，支持 Tab 切换和 @提及 调度子 Agent
+```
 
-## Agent 速查
+## Agent 团队
 
-| Agent | 干什么 | 什么时候用 |
-|-------|--------|-----------|
-| Director | 调度指挥 | 所有任务的入口 |
-| Dev | 写代码、改代码、部署 | 需要写/改/读代码 |
-| Product | 梳理需求、写 PRD | 新想法需要澄清 |
-| UI-UX | 设计界面 | 做页面设计 |
-| QA | 测试、代码审查 | Dev 写完需要验证 |
-| Guardian | 安全扫描、技术债 | 安全检查、巡检 |
-| Growth | 内容策略、增长 | 写文章、做推广 |
-| Finance | 定价、成本、ROI | 算钱 |
-| Advisor | 分析、决策辅助 | 纠结时问怎么选 |
+| 角色 | 文件 | 中文名 | 职责 |
+|------|------|--------|------|
+| **Director** | `prompts/director.md` | 总指挥 | 调度决策、信息汇总、质量把关 |
+| **Advisor** | `prompts/advisor.md` | 智囊 | 分析质疑、决策辅助 |
+| **Dev** | `prompts/dev.md` | 工程师 | 代码实现、技术方案、部署运维 |
+| **Product** | `prompts/product.md` | 产品经理 | 需求澄清、PRD 输出、竞品分析 |
+| **UI-UX** | `prompts/ui-ux.md` | 设计师 | 界面设计、用户体验、设计系统 |
+| **Guardian** | `prompts/guardian.md` | 哨兵 | 安全审查、技术债识别、风险巡检 |
+| **Growth** | `prompts/growth.md` | 增长 | 增长运营、内容策略、市场调研 |
+| **QA** | `prompts/qa.md` | 测试 | 测试验证、质量把关、Bug 管理 |
+| **Finance** | `prompts/finance.md` | 财务 | 记账合规、定价、成本控制 |
+| **AgentManager** | `prompts/agent-manager.md` | 管理者 | Agent 生命周期管理、质量评估 |
+
+## 工作方式
+
+1. 创始人发布任务 → **Director (总指挥)** 自动接收
+2. Director 查归属表 → 读取 `prompts/{role}.md` 获取子 Agent 提示词
+3. Director 调度子 Agent 执行任务
+4. 子 Agent 完成任务 → Director 审查产出 → 汇总报告给创始人
+
+**你只需要说需求，Director 自动调度。**
+
+## 双运行时支持
+
+| | Claude Code | OpenCode |
+|---|---|---|
+| 入口文件 | `CLAUDE.md` | `opencode.json` + `.opencode/agents/` |
+| Agent 调度 | task tool | Tab / @提及 |
+| 提示词目录 | `prompts/`（共享） | `prompts/`（共享） + `.opencode/agents/`（front matter） |
+
+两种方式共享同一套 Agent 提示词（`prompts/`），行为一致。
+
+## 任务分级
+
+| 级别 | 场景 | 调用谁 |
+|------|------|--------|
+| L0 | 格式调整、简单问答 | Director 自己搞定 |
+| L1 | 代码小改、需求分析 | 调 1 个子 Agent |
+| L2 | 功能开发、技术方案 | 调 2-3 个，走流水线 |
+| L3 | 架构决策、产品方向 | 全员 + 创始人确认 |
+
+## 开发流水线
+
+需求澄清(Product) → 设计(UI-UX) → 技术方案(Dev+Advisor) → 实现(Dev) → 验证(QA) → 安全(Guardian) → 归档(Director)
+
+## 项目结构
+
+```
+CLAUDE.md                  Claude Code 入口（Director 系统 prompt）
+opencode.json              OpenCode 入口
+prompts/                   共享 Agent 提示词（10 个文件）
+├── director.md
+├── advisor.md
+├── dev.md
+├── product.md
+├── ui-ux.md
+├── qa.md
+├── guardian.md
+├── growth.md
+├── finance.md
+└── agent-manager.md
+.opencode/                 OpenCode 运行时配置
+├── agents/                10 个 Agent 定义（含 front matter）
+└── skills/                200+ 通用 Skill 库
+scripts/                   自动化脚本
+├── auto-check.sh          每日自检
+├── quality-gate.sh        质量门禁
+└── state-manager.py       状态管理（含中断恢复）
+templates/                 项目模板
+```
+
+## 环境变量
+
+```bash
+# 必填：SenseNova API Key（从 https://token.sensenova.cn 获取）
+export SENSENOVA_API_KEY="sk-..."
+
+# 可选：知识库路径（默认 ~/code/opc/opc-knowledge）
+export OPC_KNOWLEDGE_PATH="/path/to/opc-knowledge"
+```
+
+## 中断恢复
+
+长任务中断后，新会话启动时 Director 自动检测未完成的任务并从中断点继续。
 
 ## 常用命令
 
@@ -42,32 +120,10 @@ opencode
 "全面审查这个项目"           → 全 Agent 深度审查
 ```
 
-## 流水线
+## 原则
 
-```
-需求 → Product(PRD) → UI-UX(设计) → Dev(技术方案/实现) → QA(测试) → Guardian(安全) → 归档
-```
-
-Director 自动推进，遇到架构变更/P0 漏洞/3 轮 QA 不过才暂停问创始人。
-
-## 文件结构
-
-```
-.opencode/agents/     ← Agent 定义
-.opencode/skills/     ← Skill 库（200+）
-.opencode/work/       ← 任务产出
-scripts/              ← 自动化脚本
-CLAUDE.md             ← 系统规则（Agent 读的）
-README.md             ← 本文件（人读的）
-```
-
-## 故障排查
-
-| 问题 | 解法 |
-|------|------|
-| Director 自己干活不调度 | 已修复（v1.6），工具全关。检查 Director 的 tools 全是 false |
-| 子 Agent 不工作 | 检查 OpenCode 是否加载了该 Agent 文件 |
-| 产出文件在哪 | `.opencode/work/{任务名}/` |
-| Skill 报错 | 检查 `.opencode/skills/` 下该 skill 是否存在 |
-| 中断恢复 | 新会话启动后说 "继续上次的" |
-| 会话记录 | `.opencode/work/session-notes.md` — 自动记录踩过的坑 |
+- Director 负责调度决策，子 Agent 负责执行
+- QA 和 Guardian 的首要职责是质疑，不是配合
+- 文档是交付物的一部分
+- 不读取上下文就开工 = 返工
+- 知识有保质期，超过 180 天需复审
