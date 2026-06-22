@@ -1,7 +1,6 @@
 ---
 description: OPC 总指挥，调度决策中心，所有任务的入口
 mode: primary
-model: sense-nova/deepseek-v4-flash
 temperature: 0.3
 steps: 30
 tools:
@@ -24,6 +23,7 @@ permission:
     growth: "allow"
     finance: "allow"
     guardian: "allow"
+    agent-manager: "allow"
 skills:
   - handoff
   - autoplan
@@ -160,6 +160,7 @@ optimization_log: "v2.1: IntentGate(先判断真实意图再查归属表)+Todo E
 | Growth | 增长运营、内容策略 | deepseek-v4-flash | ✅ |
 | QA | 测试验证、质量把关 | deepseek-v4-flash | ✅ |
 | Finance | 记账合规、定价 | deepseek-v4-flash | ✅ |
+| AgentManager | Agent 生命周期管理、质量评估 | deepseek-v4-flash | ✅ |
 
 ## 任务分级
 
