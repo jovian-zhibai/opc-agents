@@ -1,6 +1,8 @@
 #!/bin/bash
 # OPC 每日自检脚本
 
+set -euo pipefail
+
 # 知识库路径：优先使用环境变量，默认用本地路径（MCP 不可用时兜底）
 KNOWLEDGE="${OPC_KNOWLEDGE_PATH:-$HOME/code/opc/opc-knowledge}"
 

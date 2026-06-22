@@ -34,3 +34,12 @@ skills-archive/
 *~
 .DS_Store
 .reasonix/
+.codegraph/
+.deveco/
+reasonix.toml
+
+# Node.js（仅用于 OpenCode 插件开发，不提交）
+node_modules/
+package-lock.json
+*.tgz
+package.json
