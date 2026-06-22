@@ -1,0 +1,47 @@
+name: OPC Agents CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check prompts/ integrity
+        run: |
+          EXPECTED=("advisor" "agent-manager" "dev" "director" "finance" "growth" "guardian" "product" "qa" "ui-ux")
+          for name in "${EXPECTED[@]}"; do
+            if [ ! -f "prompts/$name.md" ]; then
+              echo "ERROR: prompts/$name.md missing"
+              exit 1
+            fi
+          done
+          echo "✅ All 10 prompt files present"
+
+      - name: Check entry files
+        run: |
+          for f in CLAUDE.md opencode.json README.md .env.example; do
+            if [ ! -f "$f" ]; then
+              echo "ERROR: $f missing"
+              exit 1
+            fi
+          done
+          echo "✅ All entry files present"
+
+      - name: ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './scripts'
+
+      - name: Check no hardcoded secrets
+        run: |
+          if grep -rE 'sk-[a-zA-Z0-9]{20,}' opencode.json 2>/dev/null; then
+            echo "ERROR: Hardcoded API key found in opencode.json"
+            exit 1
+          fi
+          echo "✅ No hardcoded secrets found"
