@@ -13,7 +13,7 @@ echo ""
 echo "📥 Inbox 待处理："
 INBOX="$KNOWLEDGE/00-Inbox"
 if [ -d "$INBOX" ]; then
-    count=$(ls "$INBOX" 2>/dev/null | wc -l | tr -d ' ')
+    count=$(find "$INBOX" -maxdepth 1 -not -name '.' 2>/dev/null | wc -l | tr -d ' ')
     echo "  $count 条待整理"
 else
     echo "  目录不存在: $INBOX"
