@@ -189,6 +189,48 @@ fi
 
 echo ""
 
+# ---------- 4.7. 子 Agent 职责边界表一致性 ----------
+echo "🔍 子 Agent 职责边界表检查："
+BOUNDARY_HEADERS=("与其他 Agent 的职责边界" "代码审查分工")
+boundary_errors=0
+
+for a in "${ACTUAL_PROMPTS[@]}"; do
+  [ "$a" = "director" ] && continue  # director 走 4.5 专门检查
+  prompts_f="$PROMPTS_DIR/$a.md"
+  opencode_f="$AGENTS_DIR/$a.md"
+  [ ! -f "$prompts_f" ] || [ ! -f "$opencode_f" ] && continue
+
+  for hdr in "${BOUNDARY_HEADERS[@]}"; do
+    # 检查标题存在性：一版有、另一版必须有
+    if grep -q "$hdr" "$prompts_f" 2>/dev/null; then
+      in_prompts=1
+    else
+      in_prompts=0
+    fi
+    if grep -q "$hdr" "$opencode_f" 2>/dev/null; then
+      in_opencode=1
+    else
+      in_opencode=0
+    fi
+    if [ "$in_prompts" -ne "$in_opencode" ]; then
+      if [ "$in_prompts" -eq 1 ]; then
+        echo "  ❌ $a: '$hdr' 在 prompts/ 中存在但 opencode 版缺失"
+      else
+        echo "  ❌ $a: '$hdr' 在 opencode 版中存在但 prompts/ 缺失"
+      fi
+      boundary_errors=$((boundary_errors + 1))
+    fi
+  done
+done
+
+if [ "$boundary_errors" -eq 0 ]; then
+  echo "  ✅ 所有子 Agent 职责边界表两版一致"
+else
+  ERRORS=$((ERRORS + boundary_errors))
+fi
+
+echo ""
+
 # ---------- 5. Skill 引用检查 ----------
 echo "🎯 Skill 引用完整性检查："
 if [ -d "$AGENTS_DIR" ]; then
