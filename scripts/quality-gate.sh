@@ -156,6 +156,31 @@ fi
 
 echo ""
 
+# ---------- 4.6. 阶段三产物检查 ----------
+echo "🔗 阶段三产物检查："
+FEEDBACK_SCHEMA="$PROJECT_DIR/feedback.schema.json"
+AGENT_MANAGER="$PROMPTS_DIR/agent-manager.md"
+
+# 4.6a. feedback.schema.json 存在性
+if [ ! -f "$FEEDBACK_SCHEMA" ]; then
+  echo "  ⚠️  feedback.schema.json 不存在（阶段三反馈信号定义缺失）"
+  WARNINGS=$((WARNINGS + 1))
+else
+  echo "  ✅ feedback.schema.json 存在"
+fi
+
+# 4.6b. agent-manager.md 是否引用 feedback.schema.json
+if [ -f "$AGENT_MANAGER" ]; then
+  if ! grep -q "feedback.schema.json" "$AGENT_MANAGER" 2>/dev/null; then
+    echo "  ⚠️  agent-manager.md 未引用 feedback.schema.json（阶段三反馈线未接通）"
+    WARNINGS=$((WARNINGS + 1))
+  else
+    echo "  ✅ agent-manager.md 已引用 feedback.schema.json"
+  fi
+fi
+
+echo ""
+
 # ---------- 5. Skill 引用检查 ----------
 echo "🎯 Skill 引用完整性检查："
 if [ -d "$AGENTS_DIR" ]; then
@@ -229,6 +254,28 @@ fi
 
 if [ $ERRORS -eq 0 ]; then
   echo "  ✅ 所有 prompt 和 CLAUDE.md 都有密钥泄露红线"
+fi
+
+echo ""
+
+# ---------- 8. 跨阶段 commit 扫描（warn only，非硬拦截） ----------
+echo "🔍 跨阶段 commit 扫描（仅 warn，不阻塞）："
+echo "  ⚠️  此检查只抓明显手滑，改 commit message 措辞即可绕过——不是安全门禁。"
+echo "  真正的硬拦截是 Director 红线中的'不跨阶段提交'规则。"
+LATEST_MSG=$(git log -1 --pretty=%B 2>/dev/null || echo "")
+if echo "$LATEST_MSG" | grep -qi "阶段一\|阶段二\|阶段三" 2>/dev/null; then
+  PHASE_COUNT=0
+  echo "$LATEST_MSG" | grep -qi "阶段一" && PHASE_COUNT=$((PHASE_COUNT + 1))
+  echo "$LATEST_MSG" | grep -qi "阶段二" && PHASE_COUNT=$((PHASE_COUNT + 1))
+  echo "$LATEST_MSG" | grep -qi "阶段三" && PHASE_COUNT=$((PHASE_COUNT + 1))
+  if [ "$PHASE_COUNT" -ge 2 ]; then
+    echo "  ⚠️  最近一次 commit 疑似跨阶段打包（含 $PHASE_COUNT 个阶段标记），请确认是否经创始人逐阶段确认"
+    WARNINGS=$((WARNINGS + 1))
+  else
+    echo "  ✅ 最近 commit 未检测到跨阶段标记"
+  fi
+else
+  echo "  ✅ 最近 commit 未检测到阶段标记"
 fi
 
 echo ""
