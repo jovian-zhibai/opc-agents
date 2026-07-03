@@ -73,7 +73,7 @@ Advisor 在关键决策点介入质疑，QA 和 Guardian 的首要职责是"找�
 | Agent 调度 | task tool | Tab / @提及 |
 | 提示词目录 | `prompts/`（共享） | `prompts/`（共享） + `.opencode/agents/`（front matter） |
 
-两种运行时共享同一套归属表（`routing.yaml`）和 Agent 提示词（`prompts/`），行为一致。Director 规则为双份副本（prompts/版 + opencode 版），为双环境兼容而存在，改规则时须同步两份并跑 `quality-gate.sh` 确认。
+两种运行时共享同一套归属表（`routing.yaml`）和 Agent 提示词（`prompts/`），9 个子 Agent 两版已收敛为同款精简版——砍掉通用方法论教材，保留 OPC 专有约束，行为一致。Director 规则为双份副本（prompts/版 + opencode 版），为双环境兼容而存在。改规则时须同步两份并跑 `bash scripts/quality-gate.sh` 确认（0 errors = 无漂移）。
 
 ### OpenCode Skill 说明
 
@@ -96,8 +96,10 @@ OpenCode 的 agent front matter 声明了若干 skill（如 anysearch、multi-se
 
 ```
 CLAUDE.md                  Claude Code 入口（Director 系统 prompt）
+routing.yaml               操作归属路由表（单一真相源）
+feedback.schema.json       反馈信号格式定义
 opencode.json              OpenCode 入口
-prompts/                   共享 Agent 提示词（10 个文件）
+prompts/                   共享 Agent 提示词（10 个文件，与 .opencode/agents/ 行为一致）
 ├── director.md
 ├── advisor.md
 ├── dev.md
@@ -110,12 +112,12 @@ prompts/                   共享 Agent 提示词（10 个文件）
 └── agent-manager.md
 .opencode/                 OpenCode 运行时配置
 ├── agents/                10 个 Agent 定义（含 front matter）
-└── skills/                200+ 通用 Skill 库
+└── skills/                通用 Skill 库
 scripts/                   自动化脚本
 ├── auto-check.sh          每日自检
-├── quality-gate.sh        质量门禁
+├── quality-gate.sh        一致性检查（跑这个确认两版未漂移）
 └── state-manager.py       状态管理（含中断恢复）
-templates/                 项目模板
+work/                      运行时产出目录
 ```
 
 ## 环境变量
@@ -124,8 +126,10 @@ templates/                 项目模板
 # 必填：SenseNova API Key（从 https://token.sensenova.cn 获取）
 export SENSENOVA_API_KEY="sk-..."
 
-# 可选：知识库路径（默认 ~/code/opc/opc-knowledge）
-export OPC_KNOWLEDGE_PATH="/path/to/opc-knowledge"
+# 必填：运行时产出路径和知识库路径
+export OPC_WORK_PATH=~/code/opc/opc-agents/work
+export OPC_KNOWLEDGE_PATH=~/code/opc/opc-knowledge
+mkdir -p $OPC_WORK_PATH $OPC_KNOWLEDGE_PATH
 ```
 
 ## 中断恢复
