@@ -56,7 +56,8 @@ if [ -d "$AGENTS_DIR" ]; then
   for agent_file in "$AGENTS_DIR"/*.md; do
     agent_name=$(basename "$agent_file" .md)
     for field in "${REQUIRED_FIELDS[@]}"; do
-      if ! grep -q "^$field:" <(sed -n '/^---$/,/^---$/p' "$agent_file" 2>/dev/null); then
+      fm=$(sed -n '/^---$/,/^---$/p' "$agent_file" 2>/dev/null)
+      if ! echo "$fm" | grep -q "^$field:"; then
         echo "  ❌ $agent_name — 缺少 front matter 字段: $field"
         fm_errors=$((fm_errors + 1))
       fi
@@ -226,14 +227,18 @@ echo "📚 知识库路径检查："
 CLAUDE_MD="$PROJECT_DIR/CLAUDE.md"
 if [ -f "$CLAUDE_MD" ]; then
   MISSING_DIRS=0
+  KB_DIRS=$(grep -oP '^\| \K[0-9]{2}-[^ ]+' "$CLAUDE_MD" 2>/dev/null | head -20 || true)
   while IFS= read -r dir; do
+    [[ -z "$dir" ]] && continue
     if [[ "$dir" =~ ^[0-9]{2}- ]]; then
       if [ ! -d "$KNOWLEDGE/$dir" ]; then
         echo "  ❌ CLAUDE.md 引用知识库目录 $dir，但实际路径 $KNOWLEDGE/$dir 不存在"
         MISSING_DIRS=$((MISSING_DIRS + 1))
       fi
     fi
-  done < <(grep -oP '^\| \K[0-9]{2}-[^ ]+' "$CLAUDE_MD" 2>/dev/null | head -20)
+  done <<EOF
+$KB_DIRS
+EOF
   if [ "$MISSING_DIRS" -eq 0 ]; then
     echo "  ✅ 所有 CLAUDE.md 引用的知识库目录都存在"
   else
