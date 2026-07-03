@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """OPC 状态管理器 — 任务进度跟踪与中断恢复"""
 
+import json
 import copy
 import os
 import sys
