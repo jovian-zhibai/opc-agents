@@ -88,3 +88,7 @@
 - 优化必须保留原内容，只增不删
 - 新建 agent 必须检查职责冲突
 - **不把 Agent prompt 改到无法运行**——优化后必须验证 front matter 完整和基本结构正确
+
+## 反馈信号
+
+Agent 优化建议的数据来源见 [feedback.schema.json](../feedback.schema.json)，当前阶段只定义格式、不自动消费。
