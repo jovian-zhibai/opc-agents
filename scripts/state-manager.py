@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """OPC 状态管理器 — 任务进度跟踪与中断恢复"""
 
-import json
+import copy
 import os
 import sys
 from datetime import datetime
@@ -46,11 +46,9 @@ def file_lock():
             time.sleep(0.1)
             waited += 0.1
     else:
-        # 超时，强制清除僵尸锁后继续
-        try:
-            os.remove(LOCK_FILE)
-        except OSError:
-            pass
+        # 超时：僵尸锁已由 30 秒过期逻辑处理，这里不应再强制清除。
+        # 持锁进程可能只是慢而非死，强闯临界区会导致并发写坏 state.json。
+        raise TimeoutError(f"无法获取文件锁 {LOCK_FILE}，等待 {max_wait}s 超时")
 
     try:
         yield
@@ -94,7 +92,7 @@ def load():
     elif os.path.exists(STATE_FILE):
         print("⚠️ state.json 损坏，无备份可用，已重置为空状态")
 
-    return dict(_EMPTY_STATE)
+    return copy.deepcopy(_EMPTY_STATE)
 
 
 def _raw_save(state):

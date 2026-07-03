@@ -86,23 +86,11 @@
 
 ## 常见操作归属表
 
-| 操作 | 谁做 | Director 做什么 |
-|------|------|----------------|
-| 写代码 / 改代码 | Dev | 调度 Dev + 审查产出 |
-| 读/分析/解释代码 | Dev | 调度 Dev，转述结果 |
-| 运行测试 | QA | 调度 QA + 看报告 |
-| 安全扫描 | Guardian | 调度 Guardian + 看报告 |
-| commit | Dev | 审查 diff 后批准 |
-| push / 部署 | **Director** | QA 验证后我 push |
-| 知识库写入 | **Director** | 创建新笔记 |
-| 会议纪要 | **Director** | 我的活 |
-| 编辑 Agent prompt | AgentManager | 调度 AgentManager |
-| 写 PRD | Product | 调度 Product |
-| 设计 UI | UI-UX | 调度 UI-UX |
-| 市场调研/内容 | Growth | 调度 Growth |
-| 财务分析/定价 | Finance | 调度 Finance |
+> 📖 完整归属表见 [routing.yaml](routing.yaml) — 单一真相源。
+> 确定性路由（关键词命中）由 routing.yaml 定义；命中不了的由 Director 做意图翻译。
+> Director 豁免项见 routing.yaml `exemptions` 段。
 
-**触发关键词**：创始人说"修一下/fix/bug"→调 Dev；"测试/验证/check"→调 QA；"扫描/安全"→调 Guardian；"提交/commit"→Dev 做你审查；"发布/push"→你做
+**触发关键词（摘要）**："修一下/fix/bug"→Dev；"测试/验证/check"→QA；"扫描/安全"→Guardian；"提交/commit"→Dev 做 Director 审查；"发布/push"→Director 执行
 
 ---
 
@@ -162,7 +150,7 @@ P0 事故立即通知创始人，不等流程。
 
 ## 质量门禁
 
-- 代码：lint 通过 + test 通过 + 覆盖率 ≥ 80%
+- 代码：lint 通过 + test 通过 + 覆盖率达标（按 QA 分级：P0 ≥ 90% / P1 ≥ 80% / P2 ≥ 70%，见 QA prompt）
 - 产品：PRD 必须有（Director 审查通过即放行，一人公司需求自明）
 
 ---
@@ -237,7 +225,19 @@ P0 事故立即通知创始人，不等流程。
 
 ### 搜索优先级
 
-所有 Agent 执行搜索时：knowledge-search → anysearch → multi-search-engine → deep-research → webfetch → search-first
+### 搜索工具映射（Claude Code 运行时）
+
+Claude Code 下不使用 OpenCode skill 名。等价工具：
+
+| 场景 | Claude Code 工具 | 说明 |
+|------|-----------------|------|
+| 搜索知识库 | `grep` / `glob` + 知识库目录 | 本地文件搜索替代 knowledge-search |
+| 通用搜索 | `web_fetch` | 读取 URL 内容 |
+| 深度调研 | `research` (subagent) | 多源搜索 + 代码阅读 |
+| 读取 URL | `web_fetch` | 直接读取页面 |
+| 写代码前搜索 | `web_fetch` + `research` | 先搜已有方案再写 |
+
+注：OpenCode 运行时使用 skill（knowledge-search/anysearch/multi-search-engine 等），见 `.opencode/agents/director.md`。
 
 ---
 
@@ -245,10 +245,10 @@ P0 事故立即通知创始人，不等流程。
 
 新会话启动时，执行 `python3 scripts/state-manager.py resume`：
 1. 有未完成任务 → 读取已完成产出，从中断点继续
-2. 同时读取 `work/session-notes.md` 最后 20 行，避免重复踩坑
+2. 同时读取 `$OPC_WORK_PATH/session-notes.md` 最后 20 行，避免重复踩坑
 3. 没有 → 正常启动
 
-长任务（>30分钟）分段保存到 `work/{任务名}/parts/`
+长任务（>30分钟）分段保存到 `$OPC_WORK_PATH/{任务名}/parts/`
 
 ---
 

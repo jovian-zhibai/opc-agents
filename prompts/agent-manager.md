@@ -53,20 +53,13 @@
 
 ### 数据收集机制（最小可行方案）
 
-**追踪信号**
-```json
-{
-  "signal": "user_confirm | user_reject | user_rate",
-  "agent": "agent-name",
-  "task_id": "uuid",
-  "timestamp": "ISO-8601",
-  "rating": 1-5,  // 仅 user_rate
-  "reason": "string"  // 可选
-}
-```
+**追踪信号** — 格式见 [feedback.schema.json](../feedback.schema.json)，三种信号：
+- `user_confirm`：创始人接受产出
+- `user_reject`：打回（最强负反馈，几条就有意义）
+- `user_rate`：1-5 评分
 
 **存储方式**
-- 路径：`work/agent-metrics/{agent-name}.jsonl`
+- 路径：`$OPC_WORK_PATH/agent-metrics/{agent-name}.jsonl`
 - 格式：每行一个 JSON 对象（JSONL）
 - 保留：永久保留，定期归档
 

@@ -73,36 +73,85 @@ fi
 
 echo ""
 
-# ---------- 4. prompts/ 文件 vs CLAUDE.md 引用 ----------
-echo "🔗 Agent 引用一致性检查（CLAUDE.md）："
+# 收集实际 prompt 列表（后续检查复用）
 ACTUAL_PROMPTS=()
 for f in "$PROMPTS_DIR"/*.md; do
   ACTUAL_PROMPTS+=("$(basename "$f" .md)")
 done
 
-echo "  实际 prompt 数: ${#ACTUAL_PROMPTS[@]}"
-echo "  实际 prompt 列表: ${ACTUAL_PROMPTS[*]}"
+# ---------- 4. routing.yaml 一致性检查 ----------
+echo "🔗 routing.yaml 一致性检查："
+ROUTING_YAML="$PROJECT_DIR/routing.yaml"
 
-for a in "${ACTUAL_PROMPTS[@]}"; do
-  if ! grep -qi "| $a " "$PROJECT_DIR/CLAUDE.md" 2>/dev/null && \
-     ! grep -qi "$a" "$PROJECT_DIR/CLAUDE.md" 2>/dev/null; then
-    echo "  ⚠️  $a 是实际存在的 prompt，但 CLAUDE.md 未引用"
-    WARNINGS=$((WARNINGS + 1))
-  fi
-done
+# 4a. routing.yaml 是否存在
+if [ ! -f "$ROUTING_YAML" ]; then
+  echo "  ❌ routing.yaml 不存在（单一真相源缺失）"
+  ERRORS=$((ERRORS + 1))
+else
+  echo "  ✅ routing.yaml 存在"
 
-# 也检查 .opencode/agents/director.md
-if [ -f "$AGENTS_DIR/director.md" ]; then
-  echo ""
-  echo "🔗 Agent 引用一致性检查（director.md）："
+  # 4b. 检查所有 prompt 是否都在 routing.yaml 中被引用
   for a in "${ACTUAL_PROMPTS[@]}"; do
-    # 跳过 director 自身
-    [ "$a" = "director" ] && continue
-    if ! grep -qi "$a" "$AGENTS_DIR/director.md" 2>/dev/null; then
-      echo "  ⚠️  $a 存在于 prompts/ 但 director.md 未引用"
+    # Agent 名到 routing.yaml 中 id 的映射（如 director→Director, ui-ux→UI-UX）
+    if ! grep -qi "agent.*$a\|$a" "$ROUTING_YAML" 2>/dev/null; then
+      echo "  ⚠️  $a 存在于 prompts/ 但 routing.yaml 未引用"
       WARNINGS=$((WARNINGS + 1))
     fi
   done
+
+  # 4c. 检查三份 director 是否都引用 routing.yaml 而非手写归属表
+  routing_ok=true
+  for f in "$PROJECT_DIR/CLAUDE.md" "$PROMPTS_DIR/director.md" "$AGENTS_DIR/director.md"; do
+    fname=$(basename "$(dirname "$f")")/$(basename "$f")
+    if [ -f "$f" ]; then
+      if ! grep -q "routing.yaml" "$f" 2>/dev/null; then
+        echo "  ❌ $fname 未引用 routing.yaml，可能仍在手写归属表"
+        ERRORS=$((ERRORS + 1))
+        routing_ok=false
+      fi
+    fi
+  done
+  if $routing_ok; then
+    echo "  ✅ 所有 director 均引用 routing.yaml"
+  fi
+fi
+
+echo ""
+
+# ---------- 4.5. Director 漂移检查（prompts/ vs .opencode/） ----------
+echo "🔍 Director 漂移检查："
+PROMPTS_DIRECTOR="$PROMPTS_DIR/director.md"
+OPENCODE_DIRECTOR="$AGENTS_DIR/director.md"
+
+if [ -f "$PROMPTS_DIRECTOR" ] && [ -f "$OPENCODE_DIRECTOR" ]; then
+  DRIFT_ERRORS=0
+
+  # 提取核心章节进行比对（排除 front matter 和运行时特有内容）
+  # 检查质量门禁是否一致
+  PROMPTS_GATE=$(grep "覆盖率达标" "$PROMPTS_DIRECTOR" 2>/dev/null || echo "")
+  OPENCODE_GATE=$(grep "覆盖率达标" "$OPENCODE_DIRECTOR" 2>/dev/null || echo "")
+  if [ "$PROMPTS_GATE" != "$OPENCODE_GATE" ]; then
+    echo "  ❌ 质量门禁不一致"
+    echo "     prompts/director.md: $PROMPTS_GATE"
+    echo "     .opencode/agents/director.md: $OPENCODE_GATE"
+    DRIFT_ERRORS=$((DRIFT_ERRORS + 1))
+  fi
+
+  # 检查归属表引用是否一致（都引 routing.yaml 而非手写）
+  PROMPTS_ROUTING=$(grep -c "routing.yaml" "$PROMPTS_DIRECTOR" 2>/dev/null || echo "0")
+  OPENCODE_ROUTING=$(grep -c "routing.yaml" "$OPENCODE_DIRECTOR" 2>/dev/null || echo "0")
+  if [ "$PROMPTS_ROUTING" -eq 0 ] || [ "$OPENCODE_ROUTING" -eq 0 ]; then
+    echo "  ❌ 至少一份 director 未引用 routing.yaml（漂移风险）"
+    DRIFT_ERRORS=$((DRIFT_ERRORS + 1))
+  fi
+
+  if [ "$DRIFT_ERRORS" -eq 0 ]; then
+    echo "  ✅ 两份 director 核心内容一致"
+  else
+    ERRORS=$((ERRORS + DRIFT_ERRORS))
+  fi
+else
+  echo "  ⚠️  缺少 director 文件，跳过漂移检查"
 fi
 
 echo ""

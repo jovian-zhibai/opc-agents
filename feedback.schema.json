@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opc-agents/feedback.schema.json",
+  "title": "OPC Agent 反馈信号",
+  "description": "任务打回/接受信号记录格式。阶段一埋线，阶段三激活消费。先定义格式，不阻塞当前流程。",
+  "type": "object",
+  "required": ["signal", "agent", "task_id", "timestamp"],
+  "properties": {
+    "signal": {
+      "type": "string",
+      "enum": ["user_confirm", "user_reject", "user_rate"],
+      "description": "user_confirm=创始人接受产出；user_reject=打回；user_rate=评分"
+    },
+    "agent": {
+      "type": "string",
+      "description": "被评价的 Agent 名称，如 dev/qa/guardian/product",
+      "examples": ["dev", "qa", "product", "ui-ux", "guardian", "growth", "finance", "agent-manager", "advisor"]
+    },
+    "task_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "任务唯一标识"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 格式时间戳"
+    },
+    "rating": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "仅 user_rate 信号时填写，1-5 分"
+    },
+    "reason": {
+      "type": "string",
+      "description": "打回原因或评分理由（可选）"
+    },
+    "task_description": {
+      "type": "string",
+      "description": "任务简述，方便后续检索（可选）"
+    }
+  }
+}

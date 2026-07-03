@@ -1,0 +1,163 @@
+# OPC 操作归属路由表 — 单一真相源
+# 版本: 1.0
+# 规则: 三份 director（CLAUDE.md、prompts/director.md、.opencode/agents/director.md）均引用此文件，
+#       不得各自手写归属表。修改归属关系只改此处。
+#
+# 定位: 确定性路由层 — 关键词能明确命中的直接路由；
+#       命中不了的显式交回 Director 做意图翻译（见 fallback 字段）。
+
+version: "1.0"
+description: "OPC 操作归属路由表"
+
+# ─── Director 豁免项：可自己做，不需调度 ───
+exemptions:
+  - description: "纯展示查询"
+    examples: ["git status", "文件列表", "命令行输出查看"]
+  - description: "知识库新笔记"
+    examples: ["创建新文件到知识库"]
+  - description: "文件重命名/移动"
+    examples: ["不改变文件内容的重命名或移动"]
+  - description: "push/部署"
+    note: "QA 验证后 Director 执行，但部署动作由 Dev 预先准备"
+
+exemption_rule: "判断标准：做错了能否在 10 秒内无损回退？能→自己做，不能→调度。"
+
+# ─── 确定性路由表 ───
+routes:
+  # ── UI 相关 ──
+  - id: "ui-page"
+    operation: "做页面/做网站/做前端"
+    triggers: ["做页面", "做网站", "做前端", "做界面", "写页面"]
+    agent: ["UI-UX", "Dev"]
+    sequential: true
+    director_action: "先调 UI-UX 出设计，审查后调 Dev 实现"
+    note: "串行，不可跳过 UI-UX 直接调 Dev"
+
+  - id: "ui-design"
+    operation: "设计 UI/UX/交互"
+    triggers: ["设计", "UI", "UX", "交互"]
+    agent: "UI-UX"
+    sequential: false
+    director_action: "调度 UI-UX"
+
+  # ── 代码相关 ──
+  - id: "write-code"
+    operation: "写代码/改代码"
+    triggers: ["修一下", "改一下", "fix", "实现", "开发"]
+    agent: "Dev"
+    sequential: false
+    director_action: "调度 Dev + 审查产出"
+
+  - id: "read-code"
+    operation: "读代码/分析代码/解释代码"
+    triggers: ["这段代码什么意思", "分析一下", "解释一下"]
+    agent: "Dev"
+    sequential: false
+    director_action: "调度 Dev，把结果转述给创始人"
+    note: "Director 自己不读代码——即使是理解项目结构也要调 Dev"
+
+  - id: "commit"
+    operation: "commit"
+    triggers: ["提交", "commit"]
+    agent: "Dev"
+    sequential: false
+    director_action: "审查 diff 后批准"
+
+  # ── QA 相关 ──
+  - id: "bug-triage"
+    operation: "Bug 排查/用户报告问题"
+    triggers: ["有问题", "不对", "错了", "报错", "bug"]
+    agent: ["QA", "Dev"]
+    sequential: true
+    director_action: "先调 QA 排查确认，再调 Dev 修复"
+
+  - id: "run-test"
+    operation: "运行测试"
+    triggers: ["测试", "验证", "check", "跑一下测试"]
+    agent: "QA"
+    sequential: false
+    director_action: "调度 QA + 看报告"
+
+  # ── 安全相关 ──
+  - id: "security-scan"
+    operation: "安全扫描"
+    triggers: ["扫描", "安全", "audit", "漏洞"]
+    agent: "Guardian"
+    sequential: false
+    director_action: "调度 Guardian + 看报告"
+
+  # ── 产品相关 ──
+  - id: "write-prd"
+    operation: "写 PRD/需求分析"
+    triggers: ["PRD", "需求", "产品文档"]
+    agent: "Product"
+    sequential: false
+    director_action: "调度 Product"
+
+  # ── 增长相关 ──
+  - id: "growth"
+    operation: "市场调研/竞品分析/内容策略"
+    triggers: ["调研", "竞品", "市场", "内容", "推广"]
+    agent: "Growth"
+    sequential: false
+    director_action: "调度 Growth"
+
+  # ── 财务相关 ──
+  - id: "finance"
+    operation: "财务分析/定价/记账"
+    triggers: ["定价", "财务", "记账", "成本"]
+    agent: "Finance"
+    sequential: false
+    director_action: "调度 Finance"
+    note: "需创始人确认"
+
+  # ── Agent 管理 ──
+  - id: "edit-prompt"
+    operation: "编辑 Agent prompt"
+    triggers: ["改 prompt", "优化 agent", "调整 agent"]
+    agent: "AgentManager"
+    sequential: false
+    director_action: "调度 AgentManager"
+    note: "P0-1 修正：原两份 director 错误写为 Dev，以 CLAUDE.md:99 为准。AgentManager 负责全生命周期。"
+
+  - id: "agent-lifecycle"
+    operation: "Agent 生命周期管理"
+    triggers: ["新建 agent", "删除 agent", "合并 agent", "扫描 agent"]
+    agent: "AgentManager"
+    sequential: false
+    director_action: "调度 AgentManager"
+
+  # ── Director 自己做的事 ──
+  - id: "push-deploy"
+    operation: "push/部署"
+    triggers: ["发布", "push", "部署", "上线"]
+    agent: "Director"
+    sequential: false
+    director_action: "QA 验证后 Director 执行 push"
+    note: "部署动作由 Dev 预先准备，Director 只执行"
+
+  - id: "knowledge-write"
+    operation: "知识库写入"
+    triggers: ["记录一下", "写个笔记", "归档"]
+    agent: "Director"
+    sequential: false
+    director_action: "创建新笔记，不编辑已有文件"
+
+  - id: "meeting-minutes"
+    operation: "会议纪要"
+    triggers: ["会议", "纪要"]
+    agent: "Director"
+    sequential: false
+    director_action: "写会议纪要"
+
+  - id: "task-board"
+    operation: "任务面板"
+    triggers: ["任务面板", "看板"]
+    agent: "Director"
+    sequential: false
+    director_action: "维护任务面板"
+
+# ─── 兜底：确定性路由命中不了的，交回 Director 做意图翻译 ───
+# Director 的意图翻译能力见 prompts/director.md:13-25：
+# "登录页有点丑"→调 UI-UX、"代码跑得通吗"→调 QA——这些是 LLM 做的，不是 keyword dispatch。
+fallback: "director-intent"
