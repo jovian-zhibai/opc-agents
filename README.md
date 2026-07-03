@@ -6,15 +6,33 @@ Director + 9 个子 Agent 的调度式协作架构。同时支持 **OpenCode** �
 
 ## 快速开始
 
-### 使用 Claude Code
+```bash
+# 1. 克隆
+git clone https://github.com/jovian-zhibai/opc-agents.git
+cd opc-agents
+
+# 2. 配置 API Key（SenseNova，从 https://token.sensenova.cn 获取）
+export SENSENOVA_API_KEY="sk-..."
+
+# 3. 设置环境变量
+export OPC_WORK_PATH=~/code/opc/opc-agents/work
+export OPC_KNOWLEDGE_PATH=~/code/opc/opc-knowledge
+mkdir -p $OPC_WORK_PATH $OPC_KNOWLEDGE_PATH
+
+# 4. 说第一句话
+#    创始人直接描述需求即可，Director 自动调度。例如：
+#    "帮我写一个登录功能" → Director 走完整流水线
+#    "检查一下项目安全" → 调 Guardian
+```
+
+### Claude Code
 
 ```bash
 cd opc-agents
-# Claude Code 自动加载 CLAUDE.md，Director 开始工作
-# 直接说需求即可
+# CLAUDE.md 自动加载为 Director 系统 prompt，直接说需求
 ```
 
-### 使用 OpenCode
+### OpenCode
 
 ```bash
 cd opc-agents
@@ -39,12 +57,13 @@ opencode
 
 ## 工作方式
 
-1. 创始人发布任务 → **Director (总指挥)** 自动接收
-2. Director 查归属表 → 读取 `prompts/{role}.md` 获取子 Agent 提示词
-3. Director 调度子 Agent 执行任务
-4. 子 Agent 完成任务 → Director 审查产出 → 汇总报告给创始人
+Director（总指挥）是唯一入口。创始人说需求 → Director 查归属表（`routing.yaml`）→ 读取对应子 Agent 的 prompt → 调度执行 → 审查产出 → 汇总报告。
 
-**你只需要说需求，Director 自动调度。**
+**核心协作链路**：需求澄清(Product) → 设计(UI-UX) → 技术方案(Dev+Advisor) → 实现(Dev) → 验证(QA) → 安全审查(Guardian) → 归档(Director)。
+
+Advisor 在关键决策点介入质疑，QA 和 Guardian 的首要职责是"找问题"而非"配合"。全部路由规则在 `routing.yaml` 单一真相源中定义。
+
+**创始人只需要说需求，Director 自动调度。**
 
 ## 双运行时支持
 
@@ -54,7 +73,11 @@ opencode
 | Agent 调度 | task tool | Tab / @提及 |
 | 提示词目录 | `prompts/`（共享） | `prompts/`（共享） + `.opencode/agents/`（front matter） |
 
-两种方式共享同一套 Agent 提示词（`prompts/`），行为一致。
+两种运行时共享同一套归属表（`routing.yaml`）和 Agent 提示词（`prompts/`），行为一致。Director 规则为双份副本（prompts/版 + opencode 版），为双环境兼容而存在，改规则时须同步两份并跑 `quality-gate.sh` 确认。
+
+### OpenCode Skill 说明
+
+OpenCode 的 agent front matter 声明了若干 skill（如 anysearch、multi-search-engine 等），目录 `.opencode/skills/` 下需自行准备。若 skill 缺失，系统按 Director prompt 中的降级规则处理：搜索类走 webfetch 替代，流程编排类走 prompt 内置逻辑，不会中断。Claude Code 侧无 skill 机制，可忽略。
 
 ## 任务分级
 

@@ -71,7 +71,7 @@ optimization_log: "v2.1: IntentGate(先判断真实意图再查归属表)+Todo E
 |------|------|----------------|
 | 见 routing.yaml | — | — |
 
-> 📖 完整归属表见 [routing.yaml](routing.yaml) — 单一真相源。修改路由只改那一处。
+> 📖 完整归属表见 [routing.yaml](../../routing.yaml) — 单一真相源。修改路由只改那一处。
 > 确定性路由（关键词命中）由 routing.yaml 定义；命中不了的由 Director 做意图翻译。
 
 **触发条件匹配到了，就不要自己动手。**
@@ -415,6 +415,13 @@ P0 事故立即通知创始人，不等流程。先止血再治本。
 | "帮我实现 xxx" | search-first（先搜再写） |
 
 **原则：先搜后问，先查后写。不重复造轮子。**
+
+### Skill 缺失降级
+
+调用某 skill 时若 `.opencode/skills/` 下不存在，不报错中断——按降级路径处理：
+- **搜索/查信息类**（anysearch、multi-search-engine 等）→ 用 webfetch 或联网搜索替代
+- **流程/编排类**（handoff、autoplan 等，若缺失）→ 对应行为已在 Director/Agent prompt 中直接定义，走 prompt 内置逻辑
+- 无法替代的 → 向创始人说明缺失并建议补
 
 ## 项目审查
 

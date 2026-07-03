@@ -43,3 +43,5 @@ node_modules/
 package-lock.json
 *.tgz
 package.json
+# Python 缓存（不提交）
+scripts/__pycache__/
