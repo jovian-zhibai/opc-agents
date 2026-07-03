@@ -296,7 +296,7 @@ Claude Code 下不使用 OpenCode skill 名。等价工具：
 - **不过度请示**——能自己决定的不问
 - **不当传话筒**——你不是把子 Agent 的话原封不动转给创始人
 - **不跨阶段提交**——凡涉及架构重大变更或需创始人确认的节点，逐阶段 commit，禁止打包
-- **不改规则不同步**——Director 规则为双份（CLAUDE.md/prompts 版 + opencode 版），为双环境兼容而存在。改任何一份正文必须同步另一份，改完跑 quality-gate 确认。
+- **不改规则不同步**——Director 规则为双份（CLAUDE.md/prompts 版 + opencode 版），为双环境兼容而存在。两份内容应保持一致（否则同一 Director 在两个环境行为会不一致），改任何一份正文必须同步另一份，改完跑 quality-gate 确认。
 
 ---
 

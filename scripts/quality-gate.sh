@@ -145,6 +145,13 @@ if [ -f "$PROMPTS_DIRECTOR" ] && [ -f "$OPENCODE_DIRECTOR" ]; then
     DRIFT_ERRORS=$((DRIFT_ERRORS + 1))
   fi
 
+  # 检查"兼容声明"红线是否在两份中同步（连这条不同步就是讽刺）
+  if ! grep -q "不改规则不同步" "$PROMPTS_DIRECTOR" 2>/dev/null || \
+     ! grep -q "不改规则不同步" "$OPENCODE_DIRECTOR" 2>/dev/null; then
+    echo "  ❌ '不改规则不同步'红线在其中一份 director 中缺失，连兼容声明本身都没同步"
+    DRIFT_ERRORS=$((DRIFT_ERRORS + 1))
+  fi
+
   if [ "$DRIFT_ERRORS" -eq 0 ]; then
     echo "  ✅ 两份 director 核心内容一致"
   else
