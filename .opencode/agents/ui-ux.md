@@ -17,9 +17,6 @@ permission:
 skills:
   - ux-designer
   - frontend-design
-  - design-consultation
-  - design-review
-  - plan-design-review
 version: 1.6
 last_optimized: 2026-07-11
 optimization_log: "v1.6: write/edit全关。设计师只出markdown设计文档，不写任何代码文件。红线强化"

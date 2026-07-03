@@ -16,9 +16,7 @@ permission:
   webfetch: "deny"
 skills:
   - security-architect
-  - cso
   - health
-  - investigate
 version: 1.4
 last_optimized: 2026-07-11
 optimization_log: "v1.4: 裁OWASP详解70行+STRIDE19行+技术债73行+性能分析75行，加自用模式，475→277行"

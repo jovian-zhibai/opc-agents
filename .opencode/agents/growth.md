@@ -15,8 +15,6 @@ permission:
   edit: "deny"
   webfetch: "allow"
 skills:
-  - khazix-writer
-  - wxmp-workflow
   - market-research
 version: 1.5
 last_optimized: 2026-07-11

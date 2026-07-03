@@ -18,7 +18,6 @@ permission:
   webfetch: "allow"
 skills:
   - product-owner
-  - spec
   - market-research
   - brainstorming
 version: 1.2
