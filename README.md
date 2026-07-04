@@ -11,8 +11,9 @@ Director + 9 个子 Agent 的调度式协作架构。同时支持 **OpenCode** �
 git clone https://github.com/jovian-zhibai/opc-agents.git
 cd opc-agents
 
-# 2. 配置 API Key（SenseNova，从 https://token.sensenova.cn 获取）
-export SENSENOVA_API_KEY="sk-..."
+# 2. 配置环境变量
+cp .env.example .env
+# 编辑 .env，填入你的 SENSENOVA_API_KEY（从 https://token.sensenova.cn 获取）
 
 # 3. 设置环境变量
 export OPC_WORK_PATH=~/code/opc/opc-agents/work
@@ -73,7 +74,7 @@ Advisor 在关键决策点介入质疑，QA 和 Guardian 的首要职责是"找�
 | Agent 调度 | task tool | Tab / @提及 |
 | 提示词目录 | `prompts/`（共享） | `prompts/`（共享） + `.opencode/agents/`（front matter） |
 
-两种运行时共享同一套归属表（`routing.yaml`）和 Agent 提示词（`prompts/`），9 个子 Agent 两版已收敛为同款精简版——砍掉通用方法论教材，保留 OPC 专有约束，行为一致。Director 规则为双份副本（prompts/版 + opencode 版），为双环境兼容而存在。改规则时须同步两份并跑 `bash scripts/quality-gate.sh` 确认（0 errors = 无漂移）。
+两种运行时共享同一套归属表（`routing.yaml`）和 Agent 核心约束（`prompts/`）。9 个子 Agent 两版已收敛为同款精简版，核心章节（红线、职责边界、质量门禁、协作接口）保持一致。但各有运行时特定的头部（front matter）、产出路径（`$OPC_WORK_PATH/` vs `.opencode/work/`）和段落差异（如 director 的调度机制描述），并非逐字相同。改规则时须同步两份核心章节并跑 `bash scripts/quality-gate.sh` 确认（0 errors = 无漂移）。
 
 ### OpenCode Skill 说明
 
@@ -124,7 +125,6 @@ work/                      运行时产出目录
 
 ```bash
 # 必填：SenseNova API Key（从 https://token.sensenova.cn 获取）
-export SENSENOVA_API_KEY="sk-..."
 
 # 必填：运行时产出路径和知识库路径
 export OPC_WORK_PATH=~/code/opc/opc-agents/work
