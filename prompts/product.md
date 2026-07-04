@@ -1,3 +1,4 @@
+---
 last_optimized: 2026-06-08
 optimization_log: "v1.2: 配置 skills（product-owner/spec/market-research/brainstorming）"
 ---

@@ -48,6 +48,29 @@ fi
 
 echo ""
 
+# ---------- 2.5. prompts/ Front matter 完整性 ----------
+echo "📋 prompts/ front matter 检查："
+pm_errors=0
+for prompt_file in "$PROMPTS_DIR"/*.md; do
+  agent_name=$(basename "$prompt_file" .md)
+  first_line=$(head -1 "$prompt_file" 2>/dev/null)
+  if [ "$first_line" = "---" ]; then
+    # 有开头 ---，检查 10 行内是否有闭合 ---
+    fm_block=$(sed -n '2,10p' "$prompt_file" 2>/dev/null)
+    if ! echo "$fm_block" | grep -q '^---$'; then
+      echo "  ❌ $agent_name — front matter 有开头 --- 但 10 行内无闭合 ---"
+      pm_errors=$((pm_errors + 1))
+    fi
+  fi
+done
+if [ "$pm_errors" -eq 0 ]; then
+  echo "  ✅ 所有 prompts/ front matter 完整"
+else
+  ERRORS=$((ERRORS + pm_errors))
+fi
+
+echo ""
+
 # ---------- 3. .opencode/agents/ Front matter 完整性 ----------
 echo "📋 OpenCode front matter 检查："
 if [ -d "$AGENTS_DIR" ]; then
