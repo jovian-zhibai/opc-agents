@@ -218,13 +218,13 @@ skill_routes:
 
   # 文件处理
   - intent: ["PDF", "生成 PDF", "读取 PDF"]
-    skills: ["pdf"]
+    skills: ["pdf"]  # Claude Code 专属 skill，OpenCode 环境不可用，OC 下走降级
   - intent: ["Word", "docx", "文档生成"]
-    skills: ["docx"]
+    skills: ["docx"]  # Claude Code 专属 skill，OpenCode 环境不可用，OC 下走降级
   - intent: ["Excel", "xlsx", "表格", "CSV"]
-    skills: ["xlsx"]
+    skills: ["xlsx"]  # Claude Code 专属 skill，OpenCode 环境不可用，OC 下走降级
   - intent: ["PPT", "演示文稿", "slides"]
-    skills: ["pptx"]
+    skills: ["pptx"]  # Claude Code 专属 skill，OpenCode 环境不可用，OC 下走降级
 
   # 代码审查/质量
   - intent: ["代码审查", "PR review", "代码质量"]
