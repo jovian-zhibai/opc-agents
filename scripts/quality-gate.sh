@@ -61,6 +61,9 @@ for prompt_file in "$PROMPTS_DIR"/*.md; do
       echo "  ❌ $agent_name — front matter 有开头 --- 但 10 行内无闭合 ---"
       pm_errors=$((pm_errors + 1))
     fi
+  else
+    echo "  ⚠️  $agent_name — 无 front matter（第一行非 ---）"
+    WARNINGS=$((WARNINGS + 1))
   fi
 done
 if [ "$pm_errors" -eq 0 ]; then
@@ -255,7 +258,9 @@ echo ""
 
 # ---------- 5. Skill 引用检查 ----------
 echo "🎯 Skill 引用完整性检查："
+echo "  ℹ️  社区 skill 运行时安装、不提交仓库——以下缺失为预期，非错误。"
 if [ -d "$AGENTS_DIR" ]; then
+  skill_warns=0
   for agent_file in "$AGENTS_DIR"/*.md; do
     agent_name=$(basename "$agent_file" .md)
     in_skills=false
@@ -272,16 +277,18 @@ if [ -d "$AGENTS_DIR" ]; then
         skill_name=$(echo "$line" | sed -n 's/^[[:space:]]*-[[:space:]]*//p' | sed 's/[[:space:]]*#.*//')
         if [ -n "$skill_name" ]; then
           if [ ! -d "$SKILLS_DIR/$skill_name" ]; then
-            echo "  ⚠️  $agent_name 引用了不存在的 skill: $skill_name"
-            WARNINGS=$((WARNINGS + 1))
+            skill_warns=$((skill_warns + 1))
           fi
         fi
       fi
     done < "$agent_file"
   done
-fi
-if [ $WARNINGS -eq 0 ]; then
-  echo "  ✅ 所有 skill 引用完整"
+  if [ "$skill_warns" -eq 0 ]; then
+    echo "  ✅ 所有 skill 引用完整"
+  else
+    echo "  ⚠️  $skill_warns 个 skill 声明对应目录缺失（社区 skill 未安装，预期行为）"
+    WARNINGS=$((WARNINGS + 1))
+  fi
 fi
 
 echo ""
