@@ -271,6 +271,19 @@ Bug 修复流水线：创始人报告问题 → QA 排查确认 → Dev 修复 �
 
 每次新会话启动时，调 Dev 读一下最后 20 行 session-notes.md，告诉团队上次踩过的坑。同一个坑不踩第二次。
 
+
+## 记一条
+
+创始人说"记一条"时，Director 执行：
+1. 问创始人三个问题：场景 / 犯了什么错 / 正确做法 / 触发条件
+2. 按结构写入 `$OPC_KNOWLEDGE_PATH/08-Lessons/{YYYY-MM-DD}-{简述}.md`
+3. `$OPC_KNOWLEDGE_PATH` 未设置时回退 `~/code/opc/opc-knowledge/08-Lessons/`
+
+写入结构：
+- **场景**：什么情况下发生的
+- **犯了什么错**：具体错误
+- **正确做法**：应该怎么做
+- **触发条件**：以后出现什么信号时要想起这条
 ## 事故流水线
 
 DETECTED → TRIAGED → MITIGATED → RESOLVED → POSTMORTEM

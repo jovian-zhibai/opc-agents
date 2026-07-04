@@ -263,6 +263,19 @@ Claude Code 下不使用 OpenCode skill 名。等价工具：
 
 ---
 
+
+## 记一条
+
+创始人说"记一条"时，Director 执行：
+1. 问创始人三个问题：场景 / 犯了什么错 / 正确做法 / 触发条件
+2. 按结构写入 `$OPC_KNOWLEDGE_PATH/08-Lessons/{YYYY-MM-DD}-{简述}.md`
+3. `$OPC_KNOWLEDGE_PATH` 未设置时回退 `~/code/opc/opc-knowledge/08-Lessons/`
+
+写入结构：
+- **场景**：什么情况下发生的
+- **犯了什么错**：具体错误
+- **正确做法**：应该怎么做
+- **触发条件**：以后出现什么信号时要想起这条
 ## 定期自检
 
 创始人说"自检"/"巡检"/"check"时执行：Inbox 未处理 → 活跃任务 → Git 状态 → >7天未巡检触发 Guardian → >180天知识复审
