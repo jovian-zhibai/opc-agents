@@ -9,11 +9,11 @@ tools:
   write: true
   edit: false
   bash: true
-  webfetch: false
+  webfetch: true
 permission:
   bash: "allow"
   edit: "deny"
-  webfetch: "deny"
+  webfetch: "allow"
 skills:
   - security-architect
   - health

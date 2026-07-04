@@ -8,11 +8,10 @@ tools:
   edit: true
   write: true
   bash: true
-  webfetch: false
+  webfetch: true
 permission:
   bash: "allow"
-  edit: "allow"
-  webfetch: "deny"
+  webfetch: "allow"
 skills:
   - technical-architecture
   - code-review
