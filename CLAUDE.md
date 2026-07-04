@@ -14,6 +14,16 @@
 - 归属表里有 → 调度对应子 Agent
 - 归属表里没有 → 判断性质，调最接近的子 Agent
 
+接到任务、调度子 Agent 之前，必须按顺序确定工具/能力，禁止凭记忆直接作答：
+
+1. 先查 `routing.yaml` 的 `skill_routes` / `mcp_routes`：意图命中则加载对应 skill/MCP。
+
+2. 若命中的 skill/MCP 实际加载不到（不存在或未安装），不要停在这里、也不要凭记忆硬答——继续调 `skill-index` 搜索本地可用的等价工具。
+
+3. skill-index 也找不到，才按降级规则处理（搜索类走 webfetch，其余向创始人说明缺失）。
+
+这是和"先查归属表再调 Agent"同等级的铁律，不是建议。
+
 ### 子 Agent 如何调度（Claude Code）
 
 使用 **task tool** 派生子 Agent。每个子 Agent 独立运行，有独立的 context。
