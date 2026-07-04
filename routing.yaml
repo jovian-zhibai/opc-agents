@@ -171,3 +171,98 @@ routes:
 # Director 的意图翻译能力见 prompts/director.md:13-25：
 # "登录页有点丑"→调 UI-UX、"代码跑得通吗"→调 QA——这些是 LLM 做的，不是 keyword dispatch。
 fallback: "director-intent"
+
+# ─── Skill 路由表：意图 → 对应 skill ───
+# 高频 skill 按意图分组。命中后加载给 Agent 使用。
+# 未命中的走 skill-index 检索（search.sh 实时扫描全部 skill）。
+skill_routes:
+  # 前端开发
+  - intent: ["React", "组件", "前端页面", "Vue", "Angular", "UI 组件"]
+    skills: ["react-patterns", "frontend-design"]
+  - intent: ["CSS", "样式", "布局", "Tailwind", "动画"]
+    skills: ["frontend-design", "tailwind-css"]
+
+  # 后端/API
+  - intent: ["API 设计", "REST", "接口规范", "后端架构"]
+    skills: ["api-design", "backend-patterns"]
+  - intent: ["Node.js", "Express", "Fastify", "NestJS"]
+    skills: ["backend-patterns", "nestjs-patterns"]
+  - intent: ["Python", "FastAPI", "Django", "Flask"]
+    skills: ["fastapi-patterns", "backend-patterns"]
+
+  # 数据库
+  - intent: ["数据库", "SQL", "查询优化", "慢查询", "建表"]
+    skills: ["postgres-patterns", "prisma-patterns"]
+  - intent: ["ClickHouse", "分析", "OLAP"]
+    skills: ["clickhouse-io"]
+
+  # 测试
+  - intent: ["测试", "单元测试", "集成测试", "E2E", "自动化测试"]
+    skills: ["test-driven-development", "webapp-testing", "verification-before-completion"]
+  - intent: ["调试", "bug", "报错排查", "修 bug"]
+    skills: ["systematic-debugging", "code-review"]
+
+  # 安全
+  - intent: ["安全", "漏洞", "审计", "渗透", "OWASP"]
+    skills: ["security-architect", "security-review"]
+
+  # 设计
+  - intent: ["UI 设计", "UX", "原型", "设计稿", "组件库设计"]
+    skills: ["ui-ux-designer", "frontend-design"]
+
+  # 内容/文档
+  - intent: ["写文章", "博客", "公众号", "教程", "推文", "文案"]
+    skills: ["content-engine", "article-writing"]
+  - intent: ["文档", "README", "API 文档", "技术文档"]
+    skills: ["article-writing", "architecture-decision-records"]
+
+  # 文件处理
+  - intent: ["PDF", "生成 PDF", "读取 PDF"]
+    skills: ["pdf"]
+  - intent: ["Word", "docx", "文档生成"]
+    skills: ["docx"]
+  - intent: ["Excel", "xlsx", "表格", "CSV"]
+    skills: ["xlsx", "csv"]
+  - intent: ["PPT", "演示文稿", "slides"]
+    skills: ["pptx"]
+
+  # 代码审查/质量
+  - intent: ["代码审查", "PR review", "代码质量"]
+    skills: ["code-review", "code-simplifier"]
+
+  # DevOps
+  - intent: ["部署", "Docker", "CI/CD", "上线"]
+    skills: ["deployment-patterns", "docker-patterns"]
+  - intent: ["监控", "告警", "日志"]
+    skills: ["observability-patterns", "monitoring"]
+
+  # 架构
+  - intent: ["架构设计", "系统设计", "技术选型"]
+    skills: ["technical-architecture", "architecture-decision-records"]
+
+  # AI/Agent 开发
+  - intent: ["Agent 开发", "自主循环", "agent loop", "multi-agent"]
+    skills: ["autonomous-loops", "agentic-engineering"]
+
+  # 增长/市场
+  - intent: ["增长", "SEO", "转化", "获客", "竞品分析"]
+    skills: ["market-research", "content-engine"]
+  - intent: ["数据", "分析", "BI", "指标", "看板"]
+    skills: ["data-analysis", "metrics"]
+
+  # 通用技能
+  - intent: ["复杂任务", "多步骤", "拆解计划"]
+    skills: ["autoplan", "brainstorming"]
+  - intent: ["查一下", "搜索", "调研", "最新"]
+    skills: ["anysearch", "deep-research"]
+
+# ─── MCP 路由：什么场景用什么 MCP ───
+# MCP 提供外部数据/能力，skill 是本地提示词+脚本。互为补充。
+mcp_routes: []
+  # 示例（按实际安装的 MCP 填写）：
+  # - intent: ["Next.js 文档", "Server Action", "App Router"]
+  #   mcp: "nextjs-docs"
+  # - intent: ["查价格", "市场数据", "实时行情"]
+  #   mcp: "market-data"
+  # - intent: ["浏览器操作", "e2e 测试", "截图"]
+  #   mcp: "playwright"
