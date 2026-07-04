@@ -20,6 +20,7 @@ skills-archive/
 !.opencode/skills/daily-check/
 !.opencode/skills/meeting-minutes/
 !.opencode/skills/knowledge-search/
+!.opencode/skills/skill-index/
 # 长任务产出（运行时产物，不提交）
 .opencode/work/*
 !.opencode/work/.gitkeep
