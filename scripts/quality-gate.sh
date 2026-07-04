@@ -289,7 +289,9 @@ echo ""
 # ---------- 6. 知识库路径检查 ----------
 echo "📚 知识库路径检查："
 CLAUDE_MD="$PROJECT_DIR/CLAUDE.md"
-if [ -f "$CLAUDE_MD" ]; then
+if [ ! -d "$KNOWLEDGE" ]; then
+  echo "  ⚠️  知识库目录 $KNOWLEDGE 不存在，跳过（CI 环境正常现象）"
+elif [ -f "$CLAUDE_MD" ]; then
   MISSING_DIRS=0
   KB_DIRS=$(awk '/^\| [0-9]{2}-/ {print $2}' "$CLAUDE_MD" 2>/dev/null | head -20 || true)
   while IFS= read -r dir; do
