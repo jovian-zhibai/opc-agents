@@ -154,3 +154,13 @@ mkdir -p $OPC_WORK_PATH $OPC_KNOWLEDGE_PATH
 - 文档是交付物的一部分
 - 不读取上下文就开工 = 返工
 - 知识有保质期，超过 180 天需复审
+
+## 已知决策
+
+以下为有意不做的工程化项，非遗漏：
+
+| 决策 | 理由 | 日期 |
+|------|------|------|
+| 不引入 CI 门禁（quality-gate 不进 PR pipeline） | 一人公司无 PR 流程，本地跑脚本即可 | 2026-07-04 |
+| 不引入 OpenCode 运行时 CI | 当前主力运行时为 Claude Code，无 CI 环境 | 2026-07-04 |
+| 不做 P2-4 quality-gate 进 CI | 同上，本地 quality-gate.sh 手动执行已足够 | 2026-07-04 |
