@@ -1,0 +1,42 @@
+# C2/C3 设计方案（待创始人确认后实现）
+
+## C2 反馈闭环
+
+### 数据来源
+复用 `feedback.schema.json` 格式，三种信号：
+- `user_confirm` — 创始人接受产出
+- `user_reject` — 打回（最强负反馈）
+- `user_rate` — 1-5 评分
+
+### 写入时机
+Director 在会话收尾（`prompts/director.md` 已有"反馈信号"步骤）时，
+若创始人明确接受/打回/评分，按 schema 格式写入一条 JSONL 到
+`$OPC_WORK_PATH/agent-metrics/{agent-name}.jsonl`。
+
+### 消费方
+AgentManager 定期（批量扫描时）读取 metrics 数据，产出"Agent 表现评估"：
+- 打回率趋势
+- 各 agent 薄弱维度
+- 优化建议（走人在回路流程：AgentManager 建议 → Director 审查 → Dev 执行 → 创始人确认）
+
+### 冷启动
+不等 100 条。`user_reject`（打回）是最强信号，几条就有意义。
+
+---
+
+## C3 老笔记复审
+
+### 触发时机
+挂在每日自检（Director 说"自检"/"巡检"时执行）或 quality-gate 定期自检。
+
+### 扫描逻辑
+遍历 `$OPC_KNOWLEDGE_PATH` 下所有 `.md` 文件，
+`find -name "*.md" -mtime +180` 找超过 180 天未修改的笔记。
+
+### 提醒方式
+列出超期条目清单，由 Director 在自检报告中输出：
+"⚠️ 以下知识条目超过 180 天未复审：[列表]，建议确认是否仍有效。"
+
+### 标记与重置
+复审后只需 touch 文件（更新 mtime），或手动在文中加 `last_reviewed: YYYY-MM-DD` 字段。
+不改内容结构，不改文件命名。
