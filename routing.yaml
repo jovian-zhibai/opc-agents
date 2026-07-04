@@ -258,11 +258,15 @@ skill_routes:
 
 # ─── MCP 路由：什么场景用什么 MCP ───
 # MCP 提供外部数据/能力，skill 是本地提示词+脚本。互为补充。
-mcp_routes: []
-  # 示例（按实际安装的 MCP 填写）：
-  # - intent: ["Next.js 文档", "Server Action", "App Router"]
-  #   mcp: "nextjs-docs"
-  # - intent: ["查价格", "市场数据", "实时行情"]
-  #   mcp: "market-data"
-  # - intent: ["浏览器操作", "e2e 测试", "截图"]
-  #   mcp: "playwright"
+mcp_routes:
+  # codegraph — 代码图谱分析（依赖关系、调用链、架构可视化）
+  - intent: ["依赖关系", "调用链", "代码结构", "模块耦合", "架构图谱"]
+    mcp: "codegraph"
+
+  # context7 — 上下文/外部知识注入
+  - intent: ["最新文档", "SDK 文档", "官方 API", "库的最新用法", "版本变更"]
+    mcp: "context7"
+
+  # obsidian — 知识库读写
+  - intent: ["知识库", "笔记", "ADR", "写入 Obsidian", "检索笔记", "每日记录"]
+    mcp: "obsidian"
