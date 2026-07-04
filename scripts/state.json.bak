@@ -1,0 +1,11 @@
+{
+  "events": [],
+  "current_task": {
+    "name": "任务A",
+    "current_stage": "阶段2",
+    "progress": "80%",
+    "artifact": null,
+    "updated_at": "2026-07-04T14:04:26.201773"
+  },
+  "history": []
+}
