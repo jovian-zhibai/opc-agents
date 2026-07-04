@@ -157,6 +157,16 @@ routes:
     sequential: false
     director_action: "维护任务面板"
 
+  # Advisor 不走确定性关键词路由。
+  # 由 Director 规则触发：会议（必参会）、关键决策（必须发言）、被调用时介入。
+  - id: "advisor"
+    operation: "分析质疑/决策辅助"
+    triggers: []  # 无关键词触发，走 fallback: director-intent
+    agent: "Advisor"
+    sequential: false
+    director_action: "会议/关键决策点必须请 Advisor 发言；被调用时按需介入"
+    note: "非确定性路由。不靠关键词命中，由 Director 规则和会议流程触发。"
+
 # ─── 兜底：确定性路由命中不了的，交回 Director 做意图翻译 ───
 # Director 的意图翻译能力见 prompts/director.md:13-25：
 # "登录页有点丑"→调 UI-UX、"代码跑得通吗"→调 QA——这些是 LLM 做的，不是 keyword dispatch。
