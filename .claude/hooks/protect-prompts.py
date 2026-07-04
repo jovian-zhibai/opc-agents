@@ -16,6 +16,7 @@ PROTECTED_EXACT = [
     "CLAUDE.md",
     "routing.yaml",
     "feedback.schema.json",
+    "opencode.json",
 ]
 # 允许 .opencode/skills/ 下的修改（skill 安装/更新，不是 agent prompt）
 ALLOWED_PREFIXES = [".opencode/skills/"]

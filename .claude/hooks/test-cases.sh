@@ -34,6 +34,7 @@ check "./prompts/ 前缀"         "Write" "./prompts/qa.md" 1
 check "CLAUDE.md"               "Write" "CLAUDE.md" 1
 check "routing.yaml"            "Edit"  "routing.yaml" 1
 check "feedback.schema.json"    "Write" "feedback.schema.json" 1
+check "opencode.json"            "Edit"  "opencode.json" 1
 check "相对 prompts/"           "Write" "prompts/qa.md" 1
 check "相对 .opencode/agents/"  "Edit"  ".opencode/agents/dev.md" 1
 check "skills/ 放行"            "Write" ".opencode/skills/api/SKILL.md" 0

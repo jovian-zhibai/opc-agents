@@ -29,7 +29,8 @@
       ".opencode/agents/**": "ask",
       "CLAUDE.md": "ask",
       "routing.yaml": "ask",
-      "feedback.schema.json": "ask"
+      "feedback.schema.json": "ask",
+      "opencode.json": "ask"
     }
   }
 }
