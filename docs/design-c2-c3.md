@@ -38,5 +38,5 @@ AgentManager 定期（批量扫描时）读取 metrics 数据，产出"Agent 表
 "⚠️ 以下知识条目超过 180 天未复审：[列表]，建议确认是否仍有效。"
 
 ### 标记与重置
-复审后只需 touch 文件（更新 mtime），或手动在文中加 `last_reviewed: YYYY-MM-DD` 字段。
+复审后在文中加/更新 `last_reviewed: YYYY-MM-DD` 字段，扫描基于该字段判断（不用 touch——touch 会污染 mtime，无法区分"内容更新"和"复审过"）。
 不改内容结构，不改文件命名。
