@@ -1,18 +1,22 @@
 #!/bin/bash
 # Skill Index 搜索脚本
-# 扫描 skill 目录，匹配 front matter 中的 name 和 description
+# 扫描所有 skill 目录，匹配 front matter 中的 name 和 description
 # 用法: echo "查询词" | bash search.sh
 
 set -euo pipefail
 
-# 自动检测 skill 目录（Claude Code vs OpenCode）
-SKILL_DIR=""
-if [ -d "$HOME/.claude/skills" ]; then
-    SKILL_DIR="$HOME/.claude/skills"
-elif [ -d ".opencode/skills" ]; then
-    SKILL_DIR=".opencode/skills"
-else
-    echo "未找到 skill 目录" >&2
+# 收集所有 skill 目录路径
+SKILL_DIRS=()
+for d in \
+    "$HOME/.claude/skills" \
+    "$HOME/.agents/skills" \
+    "$HOME/.config/opencode/agents" \
+    ".opencode/skills"; do
+    [ -d "$d" ] && SKILL_DIRS+=("$d")
+done
+
+if [ ${#SKILL_DIRS[@]} -eq 0 ]; then
+    echo "未找到任何 skill 目录" >&2
     exit 1
 fi
 
@@ -24,20 +28,29 @@ echo "查询: $query"
 echo ""
 
 matches=0
-for skill_md in "$SKILL_DIR"/*/SKILL.md; do
-    [ -f "$skill_md" ] || continue
-    skill_name=$(basename "$(dirname "$skill_md")")
-    
-    # 提取 YAML front matter 中的 description
-    fm=$(sed -n '/^---$/,/^---$/p' "$skill_md" 2>/dev/null)
-    desc=$(echo "$fm" | grep "^description:" | head -1 | sed 's/^description: *//')
-    [ -z "$desc" ] && desc="（无描述）"
-    
-    # 匹配：name 或 description 包含查询词（大小写不敏感）
-    if echo "$skill_name $desc" | grep -qi "$query_lower"; then
-        echo "  - $skill_name: $desc"
-        matches=$((matches + 1))
-    fi
+seen=""
+
+for dir in "${SKILL_DIRS[@]}"; do
+    for skill_md in "$dir"/*/SKILL.md; do
+        [ -f "$skill_md" ] || continue
+        skill_name=$(basename "$(dirname "$skill_md")")
+
+        # 去重
+        echo "$seen" | grep -qw "$skill_name" && continue
+        seen="$seen $skill_name"
+
+        # 提取 description（|| true 防无 description 中断）
+        fm=$(sed -n '/^---$/,/^---$/p' "$skill_md" 2>/dev/null)
+        desc=$(grep "^description:" <<<"$fm" 2>/dev/null | head -1 | sed 's/^description: *//' || true)
+        [ -z "$desc" ] && desc="（无描述）"
+
+        # 匹配
+        if grep -qi "$query_lower" <<<"$skill_name $desc" 2>/dev/null; then
+            path_label=$(echo "$dir" | sed "s|$HOME|~|")
+            echo "  - $skill_name ($path_label): $desc"
+            matches=$((matches + 1))
+        fi
+    done
 done
 
 echo ""
