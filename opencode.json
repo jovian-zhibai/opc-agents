@@ -21,5 +21,15 @@
         }
       }
     }
+  },
+  "permission": {
+    "edit": {
+      "*": "allow",
+      "prompts/**": "ask",
+      ".opencode/agents/**": "ask",
+      "CLAUDE.md": "ask",
+      "routing.yaml": "ask",
+      "feedback.schema.json": "ask"
+    }
   }
 }
