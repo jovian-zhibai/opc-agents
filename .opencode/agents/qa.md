@@ -17,7 +17,6 @@ permission:
 skills:
   - webapp-testing
   - test-driven-development
-  - qa
   - verification-before-completion
   - code-review
 version: 1.4
