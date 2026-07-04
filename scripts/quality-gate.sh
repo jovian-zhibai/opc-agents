@@ -91,10 +91,9 @@ if [ ! -f "$ROUTING_YAML" ]; then
 else
   echo "  ✅ routing.yaml 存在"
 
-  # 4b. 检查所有 prompt 是否都在 routing.yaml 中被引用
+  # 4b. 检查 prompt 名是否在 routing.yaml agent 字段中出现（大小写不敏感）
   for a in "${ACTUAL_PROMPTS[@]}"; do
-    # Agent 名到 routing.yaml 中 id 的映射（如 director→Director, ui-ux→UI-UX）
-    if ! grep -qi "agent.*$a\|$a" "$ROUTING_YAML" 2>/dev/null; then
+    if ! grep -qi "agent:.*$a" "$ROUTING_YAML" 2>/dev/null; then
       echo "  ⚠️  $a 存在于 prompts/ 但 routing.yaml 未引用"
       WARNINGS=$((WARNINGS + 1))
     fi
@@ -269,7 +268,7 @@ echo "📚 知识库路径检查："
 CLAUDE_MD="$PROJECT_DIR/CLAUDE.md"
 if [ -f "$CLAUDE_MD" ]; then
   MISSING_DIRS=0
-  KB_DIRS=$(grep -oP '^\| \K[0-9]{2}-[^ ]+' "$CLAUDE_MD" 2>/dev/null | head -20 || true)
+  KB_DIRS=$(awk '/^\| [0-9]{2}-/ {print $2}' "$CLAUDE_MD" 2>/dev/null | head -20 || true)
   while IFS= read -r dir; do
     [[ -z "$dir" ]] && continue
     if [[ "$dir" =~ ^[0-9]{2}- ]]; then
@@ -308,6 +307,23 @@ fi
 
 if [ $ERRORS -eq 0 ]; then
   echo "  ✅ 所有 prompt 和 CLAUDE.md 都有密钥泄露红线"
+fi
+
+echo ""
+
+# ---------- 7.5. Secret 字面值扫描 ----------
+echo "🔑 Secret 字面值扫描（源码）："
+SECRET_HITS=$(grep -rnE 'sk-[A-Za-z0-9]{20,}|SENSENOVA_API_KEY=.{5,}|api_key=.{10,}|token=.{20,}' "$PROJECT_DIR" \
+  --include="*.py" --include="*.sh" --include="*.js" --include="*.ts" \
+  --include="*.yml" --include="*.yaml" --include="*.json" --include="*.env" \
+  --exclude-dir=.git --exclude-dir=.opencode/skills --exclude-dir=node_modules --exclude-dir=scripts --exclude-dir=.reasonix \
+  --exclude='*.lock' --exclude='*.bak' 2>/dev/null || true)
+if [ -n "$SECRET_HITS" ]; then
+  echo "  ❌ 源码中发现疑似硬编码密钥："
+  echo "$SECRET_HITS" | while IFS= read -r line; do echo "     $line"; done
+  ERRORS=$((ERRORS + 1))
+else
+  echo "  ✅ 源码中未发现硬编码密钥"
 fi
 
 echo ""

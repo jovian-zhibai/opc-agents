@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://opc-agents/feedback.schema.json",
+  "$id": "urn:opc-agents:feedback.schema.json",
   "title": "OPC Agent 反馈信号",
   "description": "任务打回/接受信号记录格式。阶段一埋线，阶段三激活消费。先定义格式，不阻塞当前流程。",
   "type": "object",
