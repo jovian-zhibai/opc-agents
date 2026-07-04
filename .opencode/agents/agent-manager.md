@@ -106,3 +106,7 @@ optimization_log: "v1.0: 从 Claude Code 版合并，新增 agent-manager 角色
 - 不修改 Director 的核心调度逻辑
 - 优化必须保留原内容，只增不删
 - 新建 agent 必须检查职责冲突
+
+## 反馈信号
+
+Agent 优化建议的数据来源见 [feedback.schema.json](../feedback.schema.json)，当前阶段只定义格式、不自动消费。
