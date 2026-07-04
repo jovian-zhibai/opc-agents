@@ -328,6 +328,46 @@ fi
 
 echo ""
 
+# ---------- 7.6. PreToolUse Hook 自检 ----------
+echo "🔒 PreToolUse Hook 自检："
+HOOK_SCRIPT="$PROJECT_DIR/.claude/hooks/protect-prompts.py"
+
+if [ ! -f "$HOOK_SCRIPT" ]; then
+  echo "  ⚠️  protect-prompts.py 不存在，跳过 hook 自检"
+else
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "  ⚠️  python3 不可用，跳过 hook 自检（quality-gate 不依赖 python3，仅此节跳过）"
+  else
+    hook_errors=0
+    hook_test() {
+      local desc="$1" tool="$2" path="$3" expected="$4"
+      local input="{\"tool_name\":\"$tool\",\"tool_input\":{\"file_path\":\"$path\"}}"
+      local actual
+      actual=$(echo "$input" | { python3 "$HOOK_SCRIPT" 2>/dev/null; echo $?; } || true)
+      actual=$(echo "$actual" | tail -1)
+      if [ "$actual" -ne "$expected" ]; then
+        echo "  ❌ $desc -> exit $actual (expected $expected)"
+        hook_errors=$((hook_errors + 1))
+      fi
+    }
+    hook_test "CLAUDE.md 拦截"      "Write" "CLAUDE.md" 1
+    hook_test "routing.yaml 拦截"   "Edit"  "routing.yaml" 1
+    hook_test "prompts/ 拦截"       "Write" "prompts/qa.md" 1
+    hook_test ".opencode/agents/ 拦截" "Edit" ".opencode/agents/director.md" 1
+    hook_test "普通源码放行"        "Write" "src/main.py" 0
+    hook_test "Read 放行"           "Read"  "prompts/qa.md" 0
+
+    if [ "$hook_errors" -eq 0 ]; then
+      echo "  ✅ Hook 自检通过（关键路径 exit code 正确）"
+    else
+      echo "  ❌ Hook 自检 $hook_errors 项失败——物理保护可能失效"
+      ERRORS=$((ERRORS + hook_errors))
+    fi
+  fi
+fi
+
+echo ""
+
 # ---------- 8. 跨阶段 commit 扫描（warn only，非硬拦截） ----------
 echo "🔍 跨阶段 commit 扫描（仅 warn，不阻塞）："
 echo "  ⚠️  此检查只抓明显手滑，改 commit message 措辞即可绕过——不是安全门禁。"
