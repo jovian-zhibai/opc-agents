@@ -57,7 +57,7 @@ for prompt_file in "$PROMPTS_DIR"/*.md; do
   if [ "$first_line" = "---" ]; then
     # 有开头 ---，检查 10 行内是否有闭合 ---
     fm_block=$(sed -n '2,10p' "$prompt_file" 2>/dev/null)
-    if ! echo "$fm_block" | grep -q '^---$'; then
+    if ! grep -q '^---$' <<<"$fm_block"; then
       echo "  ❌ $agent_name — front matter 有开头 --- 但 10 行内无闭合 ---"
       pm_errors=$((pm_errors + 1))
     fi
@@ -78,9 +78,9 @@ if [ -d "$AGENTS_DIR" ]; then
   fm_errors=0
   for agent_file in "$AGENTS_DIR"/*.md; do
     agent_name=$(basename "$agent_file" .md)
+    fm=$(sed -n '/^---$/,/^---$/p' "$agent_file" 2>/dev/null)
     for field in "${REQUIRED_FIELDS[@]}"; do
-      fm=$(sed -n '/^---$/,/^---$/p' "$agent_file" 2>/dev/null)
-      if ! echo "$fm" | grep -q "^$field:"; then
+      if ! grep -q "^$field:" <<<"$fm"; then
         echo "  ❌ $agent_name — 缺少 front matter 字段: $field"
         fm_errors=$((fm_errors + 1))
       fi
@@ -398,11 +398,11 @@ echo "🔍 跨阶段 commit 扫描（仅 warn，不阻塞）："
 echo "  ⚠️  此检查只抓明显手滑，改 commit message 措辞即可绕过——不是安全门禁。"
 echo "  真正的硬拦截是 Director 红线中的'不跨阶段提交'规则。"
 LATEST_MSG=$(git log -1 --pretty=%B 2>/dev/null || echo "")
-if echo "$LATEST_MSG" | grep -qi "阶段一\|阶段二\|阶段三" 2>/dev/null; then
+if grep -qi "阶段一\|阶段二\|阶段三" <<<"$LATEST_MSG" 2>/dev/null; then
   PHASE_COUNT=0
-  echo "$LATEST_MSG" | grep -qi "阶段一" && PHASE_COUNT=$((PHASE_COUNT + 1))
-  echo "$LATEST_MSG" | grep -qi "阶段二" && PHASE_COUNT=$((PHASE_COUNT + 1))
-  echo "$LATEST_MSG" | grep -qi "阶段三" && PHASE_COUNT=$((PHASE_COUNT + 1))
+  grep -qi "阶段一" <<<"$LATEST_MSG" && PHASE_COUNT=$((PHASE_COUNT + 1))
+  grep -qi "阶段二" <<<"$LATEST_MSG" && PHASE_COUNT=$((PHASE_COUNT + 1))
+  grep -qi "阶段三" <<<"$LATEST_MSG" && PHASE_COUNT=$((PHASE_COUNT + 1))
   if [ "$PHASE_COUNT" -ge 2 ]; then
     echo "  ⚠️  最近一次 commit 疑似跨阶段打包（含 $PHASE_COUNT 个阶段标记），请确认是否经创始人逐阶段确认"
     WARNINGS=$((WARNINGS + 1))
