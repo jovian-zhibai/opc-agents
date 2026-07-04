@@ -36,7 +36,7 @@ for dir in "${SKILL_DIRS[@]}"; do
         skill_name=$(basename "$(dirname "$skill_md")")
 
         # 去重
-        echo "$seen" | grep -qw "$skill_name" && continue
+        grep -q " $skill_name " <<<" $seen " && continue
         seen="$seen $skill_name"
 
         # 提取 description（|| true 防无 description 中断）
@@ -46,7 +46,7 @@ for dir in "${SKILL_DIRS[@]}"; do
 
         # 匹配
         if grep -qi "$query_lower" <<<"$skill_name $desc" 2>/dev/null; then
-            path_label=$(echo "$dir" | sed "s|$HOME|~|")
+            path_label=$(sed "s|$HOME|~|" <<<"$dir")
             echo "  - $skill_name ($path_label): $desc"
             matches=$((matches + 1))
         fi
