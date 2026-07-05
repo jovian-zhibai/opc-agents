@@ -266,17 +266,14 @@ Claude Code 下不使用 OpenCode skill 名。等价工具：
 
 ## 记一条
 
-创始人说"记一条"时，Director 执行：
-1. 问创始人三个问题：场景 / 犯了什么错 / 正确做法 / 触发条件
-2. 按结构写入 `$OPC_KNOWLEDGE_PATH/08-Lessons/{YYYY-MM-DD}-{简述}.md`
-3. `$OPC_KNOWLEDGE_PATH` 未设置时回退 `~/code/opc/opc-knowledge/08-Lessons/`
 
-写入结构：
-- **场景**：什么情况下发生的
-- **犯了什么错**：具体错误
-- **正确做法**：应该怎么做
-- **触发条件**：以后出现什么信号时要想起这条
+创始人说"记一条"并给出一句话描述时（例如"它改 main 又没贴证据"），Director 不再逐条追问，而是：
+1. 根据这句话，自己补全四段结构：场景 / 犯了什么错 / 正确做法 / 触发条件
+2. 写入 `$OPC_KNOWLEDGE_PATH/08-Lessons/{YYYY-MM-DD}-{简述}.md`（`$OPC_KNOWLEDGE_PATH` 未设置时回退 `~/code/opc/opc-knowledge/08-Lessons/`）
+3. 写完把 文件路径 + 文件原文 + ls 结果 三样贴回给创始人，并明确说"请确认四段内容是否准确"
+4. 未经创始人确认，这条教训视为草稿、不算完成；创始人纠正后改文件，确认后才算入库
 
+创始人只需给一句话，四段结构由 Director 补全，不要反过来要求创始人逐条回答。
 ## 任务前查教训
 
 每次开始一个新任务前，Director 必须先执行：
