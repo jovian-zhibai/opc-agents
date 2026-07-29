@@ -91,4 +91,5 @@
 
 ## 反馈信号
 
-Agent 优化建议的数据来源见 [feedback.schema.json](../feedback.schema.json)，当前阶段只定义格式、不自动消费。
+Agent 优化建议的数据来源见 [feedback.schema.json](../feedback.schema.json)。
+其中 `user_reject` 信号的 `reason` 字段已被 Director「打回自动沉淀教训」流程消费（自动落盘至 `08-Lessons/` 并被 `search.sh` 检索）。其余信号（`user_confirm`、`user_rate`）当前仍只记录格式，暂无自动消费逻辑。

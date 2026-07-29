@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:opc-agents:feedback.schema.json",
   "title": "OPC Agent 反馈信号",
-  "description": "任务打回/接受信号记录格式。阶段一埋线，阶段三激活消费。先定义格式，不阻塞当前流程。",
+  "description": "任务打回/接受信号记录格式。user_reject 信号的 reason 字段会通过 Director「打回自动沉淀教训」流程落进知识库 08-Lessons/，被 lessons-index/search.sh 检索消费。",
   "type": "object",
   "required": ["signal", "agent", "task_id", "timestamp"],
   "properties": {
@@ -34,7 +34,7 @@
     },
     "reason": {
       "type": "string",
-      "description": "打回原因或评分理由（可选）"
+      "description": "打回原因或评分理由（可选）。user_reject 时填写的话，Director 会据此自动生成一条教训写入 08-Lessons/（见 .opencode/agents/director.md「打回自动沉淀教训」节）"
     },
     "task_description": {
       "type": "string",
