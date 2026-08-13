@@ -1,0 +1,140 @@
+#!/usr/bin/env bash
+# herdr-send — Send a message to a Herdr agent with auto-retry
+#
+# Usage:
+#   herdr-send <target> <message> [options]
+#
+# Target: agent pane ID (w1:p3) or agent name (opencode, pi, etc.)
+#
+# Options:
+#   -r, --retries N    Max retries (default: 5)
+#   -t, --timeout MS   Timeout per attempt in ms (default: 15000)
+#   -v, --verbose      Show retry details
+#
+# Examples:
+#   herdr-send opencode "Hey, check your task!"
+#   herdr-send w1:p3 "Are you ready?" -r 3 -t 10000
+#
+# Exit codes:
+#   0 — message sent successfully
+#   1 — failed after all retries
+#   2 — usage error
+
+set -euo pipefail
+
+TARGET=""
+MESSAGE=""
+MAX_RETRIES=5
+TIMEOUT_MS=15000
+VERBOSE=0
+
+usage() {
+  sed -n '2,/^$/s/^# \?//p' "$0"
+  exit 2
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -r|--retries) MAX_RETRIES="$2"; shift 2 ;;
+    -t|--timeout) TIMEOUT_MS="$2"; shift 2 ;;
+    -v|--verbose) VERBOSE=1; shift ;;
+    -h|--help) usage ;;
+    -*) echo "Unknown option: $1" >&2; usage ;;
+    *)
+      if [[ -z "$TARGET" ]]; then
+        TARGET="$1"
+      elif [[ -z "$MESSAGE" ]]; then
+        MESSAGE="$1"
+      else
+        MESSAGE="$MESSAGE $1"
+      fi
+      shift
+      ;;
+  esac
+done
+
+if [[ -z "$TARGET" ]]; then
+  echo "ERROR: target required" >&2
+  usage
+fi
+
+if [[ -z "$MESSAGE" ]]; then
+  echo "ERROR: message required" >&2
+  usage
+fi
+
+# Find the target pane
+find_pane() {
+  local target="$1"
+  local agents
+  agents=$(herdr agent list 2>/dev/null || echo '{}')
+
+  # Try exact pane_id match
+  local pane
+  pane=$(echo "$agents" | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+agents = data.get('result', {}).get('agents', []) or data.get('agents', [])
+target = sys.argv[1]
+for a in agents:
+    if a.get('pane_id') == target or a.get('agent') == target:
+        print(a.get('pane_id'))
+        sys.exit(0)
+sys.exit(1)
+" "$target" 2>/dev/null)
+
+  if [[ -n "$pane" ]]; then
+    echo "$pane"
+    return 0
+  fi
+  return 1
+}
+
+log() {
+  [[ $VERBOSE -eq 1 ]] && echo "[herdr-send] $*" >&2
+}
+
+# ─── Main ────────────────────────────────────────────────────────────────────
+
+log "Sending message to '$TARGET'"
+
+# Check if target is already available
+PANE=""
+if PANE=$(find_pane "$TARGET"); then
+  log "Found pane: $PANE"
+else
+  log "Agent '$TARGET' not ready, waiting for it to appear..."
+  WAIT_END=$(( $(date +%s) + (TIMEOUT_MS / 1000) ))
+  while [[ $(date +%s) -lt $WAIT_END ]]; do
+    if PANE=$(find_pane "$TARGET"); then
+      log "Found pane: $PANE"
+      break
+    fi
+    sleep 2
+  done
+
+  if [[ -z "$PANE" ]]; then
+    echo "ERROR: Agent '$TARGET' not found after $(( WAIT_END - $(date +%s) ))s" >&2
+    exit 1
+  fi
+fi
+
+# Send with retry
+for (( i = 1; i <= MAX_RETRIES + 1; i++ )); do
+  log "Attempt $i/$(( MAX_RETRIES + 1 ))..."
+
+  if herdr agent prompt "$PANE" "$MESSAGE" >/dev/null 2>&1; then
+    # Try to wait for agent to finish (non-blocking)
+    herdr agent wait "$PANE" --timeout "$TIMEOUT_MS" >/dev/null 2>&1 || true
+    log "Success on attempt $i"
+    exit 0
+  fi
+
+  if [[ $i -le $MAX_RETRIES ]]; then
+    log "Attempt $i failed, retrying in 2s..."
+    sleep 2
+  fi
+done
+
+echo "ERROR: Failed to send to '$TARGET' after $MAX_RETRIES retries" >&2
+exit 1
