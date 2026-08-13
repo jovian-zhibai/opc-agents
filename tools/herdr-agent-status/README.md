@@ -45,8 +45,10 @@ herdr-send w1:p3 "message" -r 5 -t 15000 -v
 
 1. **Before sending**: polls `herdr agent list` to find the target pane
 2. **If not found**: waits up to `timeout` ms, re-polling every 2s
-3. **On send failure**: retries up to `retries` times with 2s backoff
+3. **On send failure**: retries with exponential backoff (2s → 4s → 8s → cap 10s)
 4. **After send**: optionally calls `herdr agent wait` to confirm receipt
+
+**Prerequisites:** python3, herdr CLI
 
 ## Installation
 

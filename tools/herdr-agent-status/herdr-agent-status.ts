@@ -9,9 +9,8 @@
  * Install: pi install /path/to/herdr-agent-status.ts
  */
 
-import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Type } from "@earendil-works/pi-ai";
-import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 
 interface AgentInfo {
   agent: string;
@@ -172,7 +171,8 @@ export default function (pi: ExtensionAPI) {
         }
       }
 
-      // Send with retry
+      // Send with retry (exponential backoff)
+      let backoffMs = 2000;
       for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
         if (signal?.aborted) {
           return { content: [{ type: "text", text: "Cancelled" }] };
@@ -192,21 +192,32 @@ export default function (pi: ExtensionAPI) {
           // Try to wait for the agent to finish processing
           try {
             await pi.exec("herdr", ["agent", "wait", targetPane, "--timeout", String(timeoutMs)]);
-          } catch {
-            // Non-critical: agent might have finished already
+            return {
+              content: [{ type: "text", text: `✓ Message sent to ${targetPane} (${target}) on attempt ${attempt}` }],
+              details: { targetPane, attempt },
+            };
+          } catch (waitErr: any) {
+            // Agent might already be idle; treat as non-critical
+            onUpdate?.({
+              content: [{ type: "text", text: `✓ Sent to ${targetPane}, but could not confirm receipt (${waitErr.message})` }],
+            });
+            return {
+              content: [{ type: "text", text: `✓ Sent to ${targetPane} (could not confirm receipt)` }],
+              details: { targetPane, attempt, confirmed: false },
+            };
           }
-
-          return {
-            content: [{ type: "text", text: `✓ Message sent to ${targetPane} (${target}) on attempt ${attempt}` }],
-            details: { targetPane, attempt },
-          };
         } catch (err: any) {
           onUpdate?.({
             content: [{ type: "text", text: `Attempt ${attempt} failed: ${err.message}` }],
           });
 
           if (attempt <= maxRetries) {
-            await new Promise((r) => setTimeout(r, 2000));
+            const delay = Math.min(backoffMs, 10000);
+            onUpdate?.({
+              content: [{ type: "text", text: `Retrying in ${delay}ms...` }],
+            });
+            await new Promise((r) => setTimeout(r, delay));
+            backoffMs = Math.min(backoffMs * 2, 10000);
           }
         }
       }
@@ -234,11 +245,6 @@ export default function (pi: ExtensionAPI) {
       const lines = agents.map(
         (a) =>
           `${statusIcon(a.agent_status)} ${a.agent} [${a.agent_status}] pane=${a.pane_id}  ${a.terminal_title_stripped || "(no title)"}`,
-      );
-
-      ctx.ui.setStatus(
-        "herdr-agents",
-        lines.map((l) => l.split("  ")[0]).join("  "),
       );
 
       return {

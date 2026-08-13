@@ -33,6 +33,13 @@ usage() {
   exit 2
 }
 
+# ─── Prerequisite checks ────────────────────────────────────────────────────
+
+command -v python3 >/dev/null 2>&1 || { echo "ERROR: python3 is required" >&2; exit 2; }
+command -v herdr >/dev/null 2>&1 || { echo "ERROR: herdr is not installed or not in PATH" >&2; exit 2; }
+
+# ─── Parse args ─────────────────────────────────────────────────────────────
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -r|--retries) MAX_RETRIES="$2"; shift 2 ;;
@@ -63,13 +70,17 @@ if [[ -z "$MESSAGE" ]]; then
   usage
 fi
 
-# Find the target pane
+# ─── Helpers ────────────────────────────────────────────────────────────────
+
+log() {
+  [[ $VERBOSE -eq 1 ]] && echo "[herdr-send] $*" >&2
+}
+
 find_pane() {
   local target="$1"
   local agents
   agents=$(herdr agent list 2>/dev/null || echo '{}')
 
-  # Try exact pane_id match
   local pane
   pane=$(echo "$agents" | python3 -c "
 import sys, json
@@ -90,49 +101,50 @@ sys.exit(1)
   return 1
 }
 
-log() {
-  [[ $VERBOSE -eq 1 ]] && echo "[herdr-send] $*" >&2
-}
-
 # ─── Main ────────────────────────────────────────────────────────────────────
 
 log "Sending message to '$TARGET'"
 
-# Check if target is already available
+# Find the target pane (with wait if needed)
 PANE=""
 if PANE=$(find_pane "$TARGET"); then
   log "Found pane: $PANE"
 else
   log "Agent '$TARGET' not ready, waiting for it to appear..."
-  WAIT_END=$(( $(date +%s) + (TIMEOUT_MS / 1000) ))
-  while [[ $(date +%s) -lt $WAIT_END ]]; do
+  WAIT_START=$(date +%s)
+  WAIT_TIMEOUT_S=$((TIMEOUT_MS / 1000))
+  while true; do
     if PANE=$(find_pane "$TARGET"); then
       log "Found pane: $PANE"
       break
     fi
+    ELAPSED=$(( $(date +%s) - WAIT_START ))
+    if [[ $ELAPSED -ge $WAIT_TIMEOUT_S ]]; then
+      echo "ERROR: Agent '$TARGET' not found after ${ELAPSED}s" >&2
+      exit 1
+    fi
     sleep 2
   done
-
-  if [[ -z "$PANE" ]]; then
-    echo "ERROR: Agent '$TARGET' not found after $(( WAIT_END - $(date +%s) ))s" >&2
-    exit 1
-  fi
 fi
 
-# Send with retry
+# Send with retry (exponential backoff: 2s → 4s → 8s → cap 10s)
+BACKOFF_MS=2000
 for (( i = 1; i <= MAX_RETRIES + 1; i++ )); do
-  log "Attempt $i/$(( MAX_RETRIES + 1 ))..."
+  log "Attempt $i/$(( MAX_RETRIES + 1 )) (backoff=${BACKOFF_MS}ms)..."
 
   if herdr agent prompt "$PANE" "$MESSAGE" >/dev/null 2>&1; then
-    # Try to wait for agent to finish (non-blocking)
-    herdr agent wait "$PANE" --timeout "$TIMEOUT_MS" >/dev/null 2>&1 || true
+    # Try to confirm receipt (non-critical)
+    herdr agent wait "$PANE" --timeout "$TIMEOUT_MS" >/dev/null 2>&1 || log "Sent but could not confirm receipt"
     log "Success on attempt $i"
     exit 0
   fi
 
   if [[ $i -le $MAX_RETRIES ]]; then
-    log "Attempt $i failed, retrying in 2s..."
-    sleep 2
+    BACKOFF_S=$(( BACKOFF_MS / 1000 ))
+    log "Attempt $i failed, retrying in ${BACKOFF_S}s..."
+    sleep "$BACKOFF_S"
+    BACKOFF_MS=$(( BACKOFF_MS * 2 ))
+    [[ $BACKOFF_MS -gt 10000 ]] && BACKOFF_MS=10000
   fi
 done
 
