@@ -19,7 +19,6 @@ skills:
   - webapp-testing
   - systematic-debugging
   - test-driven-development
-  - health  # 全局也未安装（health 检查），缺失时忽略
 version: 2.6
 last_optimized: 2026-07-11
 optimization_log: "v2.6: 前端职责边界明确(Dev实现UI-UX设计、不做视觉决策、无设计时拒绝)+红线补"

@@ -271,7 +271,8 @@ fi
 # 注：路径前缀（$OPC_WORK_PATH vs .opencode/work）是有意设计的两环境差异，不做硬比对。
 # ---------- 4.8. 角色文件内容级漂移检查（prompts/ vs .opencode/） ----------
 # 锚点 grep 判别力为零（2026-08-16 重审确认），改为逐行 diff 归一化内容：
-#   - 去掉 front matter（两版格式不同）
+#   - 去掉 front matter（仅当文件首行是 --- 时才进入 front matter 模式，
+#     避免正文中间的 --- 分隔线被误当 front matter 边界——ui-ux/finance 曾因此丢整段）
 #   - 归一化路径前缀（$OPC_WORK_PATH / .opencode/work / work/ 是两环境有意差异）
 #   - 归一化空白
 # 剩余差异行数超过阈值 → 报错（可能的行为级漂移）。
@@ -283,13 +284,12 @@ for a in "${ACTUAL_PROMPTS[@]}"; do
   opencode_f="$AGENTS_DIR/$a.md"
   [ ! -f "$prompts_f" ] || [ ! -f "$opencode_f" ] && continue
 
-  # 归一化函数：去 front matter（如有）、归一化路径，保留行结构
+  # 归一化函数：仅当首行是 --- 才去 front matter；正文中的 --- 分隔线保留
   normalize() {
     awk '
-      BEGIN { in_fm=0; has_fm=0 }
-      /^---$/ { in_fm++; has_fm=1; next }
-      has_fm == 0 { print }                    # 无 front matter：全部输出
-      has_fm == 1 && in_fm >= 2 { print }      # 有 front matter：只输出正文
+      NR == 1 && /^---$/ { in_fm=1; next }
+      in_fm == 1 && /^---$/ { in_fm=0; next }   # front matter 结束
+      in_fm == 0 { print }                        # 无 front matter 或已出 front matter：全部输出
     ' "$1" |
       sed -E 's#\$OPC_WORK_PATH#WORK#g; s#\.opencode/work#WORK#g; s#(^|[^A-Za-z])work/#WORK/#g' |
       sed -E 's/\$OPC_KNOWLEDGE_PATH/KB/g' |
