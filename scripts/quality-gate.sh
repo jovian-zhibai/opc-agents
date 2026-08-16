@@ -263,6 +263,41 @@ else
   ERRORS=$((ERRORS + boundary_errors))
 fi
 
+# ---------- 4.8. 关键字段漂移检查（prompts/ vs .opencode/ 行为级） ----------
+# 锚点检查查不出正文漂移（2026-08-16 审查发现 9/10 文件存在行为级差异）。
+# 这里对每个角色文件校验关键字段（红线/路径变量/环境变量）是否两版同步。
+# 注：路径前缀（$OPC_WORK_PATH vs .opencode/work）是有意设计的两环境差异，不做硬比对。
+KEY_FIELDS=("API key" "不得" "必须")
+field_errors=0
+
+for a in "${ACTUAL_PROMPTS[@]}"; do
+  [ "$a" = "director" ] && continue
+  prompts_f="$PROMPTS_DIR/$a.md"
+  opencode_f="$AGENTS_DIR/$a.md"
+  [ ! -f "$prompts_f" ] || [ ! -f "$opencode_f" ] && continue
+
+  for field in "${KEY_FIELDS[@]}"; do
+    in_p=0; in_o=0
+    grep -q "$field" "$prompts_f" 2>/dev/null && in_p=1
+    grep -q "$field" "$opencode_f" 2>/dev/null && in_o=1
+    if [ "$in_p" -ne "$in_o" ]; then
+      echo "  ❌ ${a}: 关键字段『${field}』两版不一致（prompts: ${in_p} / opencode: ${in_o}）"
+      field_errors=$((field_errors + 1))
+    fi
+  done
+  # 红线文本检查：prompts 有『不泄露』等红线词，opencode 版必须也有（ASCII 关键词匹配）
+  if grep -q "API key" "$prompts_f" 2>/dev/null && ! grep -q "API key" "$opencode_f" 2>/dev/null; then
+    echo "  ❌ $a: prompts 版含密钥泄露红线，opencode 版缺失"
+    field_errors=$((field_errors + 1))
+  fi
+done
+
+if [ "$field_errors" -eq 0 ]; then
+  echo "  ✅ 所有子 Agent 关键字段两版一致"
+else
+  ERRORS=$((ERRORS + field_errors))
+fi
+
 echo ""
 
 # ---------- 5. Skill 引用检查 ----------

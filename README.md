@@ -13,7 +13,8 @@ cd opc-agents
 
 # 2. 配置环境变量
 cp .env.example .env
-# 编辑 .env，填入你的 SENSENOVA_API_KEY（从 https://token.sensenova.cn 获取）
+# 编辑 .env，填入 JENSEN003_API_KEY 与 SOULJIAN03_API_KEY
+# （两个 key 被 opencode.json 的 provider 使用，从 https://token.sensenova.cn 获取）
 
 # 3. 设置环境变量
 export OPC_WORK_PATH=~/code/opc/opc-agents/work
