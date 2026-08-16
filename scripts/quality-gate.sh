@@ -117,9 +117,11 @@ if [ ! -f "$ROUTING_YAML" ]; then
 else
   echo "  ✅ routing.yaml 存在"
 
-  # 4b. 检查 prompt 名是否在 routing.yaml agent 字段中出现（大小写不敏感）
+  # 4b. 检查 prompt 名是否在 routing.yaml agent 字段中出现（大小写不敏感，连字符/驼峰归一化）
   for a in "${ACTUAL_PROMPTS[@]}"; do
-    if ! grep -qi "agent:.*$a" "$ROUTING_YAML" 2>/dev/null; then
+    # agent-manager → AgentManager（macOS sed 不支持 \U，用 bash 拼接）
+    camel="$(echo "$a" | awk -F- '{ for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) } print }' OFS='')"
+    if ! grep -qiE "agent:.*($a|$camel)" "$ROUTING_YAML" 2>/dev/null; then
       echo "  ⚠️  $a 存在于 prompts/ 但 routing.yaml 未引用"
       WARNINGS=$((WARNINGS + 1))
     fi
@@ -267,7 +269,12 @@ fi
 # 锚点检查查不出正文漂移（2026-08-16 审查发现 9/10 文件存在行为级差异）。
 # 这里对每个角色文件校验关键字段（红线/路径变量/环境变量）是否两版同步。
 # 注：路径前缀（$OPC_WORK_PATH vs .opencode/work）是有意设计的两环境差异，不做硬比对。
-KEY_FIELDS=("API key" "不得" "必须")
+# ---------- 4.8. 角色文件内容级漂移检查（prompts/ vs .opencode/） ----------
+# 锚点 grep 判别力为零（2026-08-16 重审确认），改为逐行 diff 归一化内容：
+#   - 去掉 front matter（两版格式不同）
+#   - 归一化路径前缀（$OPC_WORK_PATH / .opencode/work / work/ 是两环境有意差异）
+#   - 归一化空白
+# 剩余差异行数超过阈值 → 报错（可能的行为级漂移）。
 field_errors=0
 
 for a in "${ACTUAL_PROMPTS[@]}"; do
@@ -276,24 +283,42 @@ for a in "${ACTUAL_PROMPTS[@]}"; do
   opencode_f="$AGENTS_DIR/$a.md"
   [ ! -f "$prompts_f" ] || [ ! -f "$opencode_f" ] && continue
 
-  for field in "${KEY_FIELDS[@]}"; do
-    in_p=0; in_o=0
-    grep -q "$field" "$prompts_f" 2>/dev/null && in_p=1
-    grep -q "$field" "$opencode_f" 2>/dev/null && in_o=1
-    if [ "$in_p" -ne "$in_o" ]; then
-      echo "  ❌ ${a}: 关键字段『${field}』两版不一致（prompts: ${in_p} / opencode: ${in_o}）"
-      field_errors=$((field_errors + 1))
-    fi
-  done
-  # 红线文本检查：prompts 有『不泄露』等红线词，opencode 版必须也有（ASCII 关键词匹配）
-  if grep -q "API key" "$prompts_f" 2>/dev/null && ! grep -q "API key" "$opencode_f" 2>/dev/null; then
-    echo "  ❌ $a: prompts 版含密钥泄露红线，opencode 版缺失"
+  # 归一化函数：去 front matter（如有）、归一化路径，保留行结构
+  normalize() {
+    awk '
+      BEGIN { in_fm=0; has_fm=0 }
+      /^---$/ { in_fm++; has_fm=1; next }
+      has_fm == 0 { print }                    # 无 front matter：全部输出
+      has_fm == 1 && in_fm >= 2 { print }      # 有 front matter：只输出正文
+    ' "$1" |
+      sed -E 's#\$OPC_WORK_PATH#WORK#g; s#\.opencode/work#WORK#g; s#(^|[^A-Za-z])work/#WORK/#g' |
+      sed -E 's/\$OPC_KNOWLEDGE_PATH/KB/g' |
+      sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//' |
+      grep -vE '^$'
+  }
+
+  # 逐行 diff，只统计 prompts 独有行（< 方向）——prompts 是基准版，
+  # prompts 有而 opencode 缺的才是危险漂移（红线/章节缺失）；
+  # opencode 独有行（> 方向）多为更全内容，是有意差异不报错。
+  prompts_only=$(diff <(normalize "$prompts_f") <(normalize "$opencode_f") 2>/dev/null | grep -cE '^<' || true)
+  opencode_only=$(diff <(normalize "$prompts_f") <(normalize "$opencode_f") 2>/dev/null | grep -cE '^>' || true)
+  if [ "$prompts_only" -gt 8 ]; then
+    echo "  ❌ ${a}: prompts 版有 ${prompts_only} 行在 opencode 版缺失（opencode 多 ${opencode_only} 行）——疑似红线/章节漂移，请人工核对"
+    field_errors=$((field_errors + 1))
+  else
+    echo "  ✅ ${a}: prompts 独有 ${prompts_only} 行（阈值内），opencode 多 ${opencode_only} 行（多为更全内容，接受）"
+  fi
+
+  # 红线专项检查：prompts 版含密钥泄露红线，opencode 版缺失 → 直接报错（不靠行数阈值）
+  if grep -q "不泄露.*密钥\|不泄露.*API key" "$prompts_f" 2>/dev/null &&
+    ! grep -q "不泄露.*密钥\|不泄露.*API key" "$opencode_f" 2>/dev/null; then
+    echo "  ❌ ${a}: prompts 版含密钥泄露红线，opencode 版缺失——红线缺失属关键漂移"
     field_errors=$((field_errors + 1))
   fi
 done
 
 if [ "$field_errors" -eq 0 ]; then
-  echo "  ✅ 所有子 Agent 关键字段两版一致"
+  echo "  ✅ 所有子 Agent prompts 关键内容在 opencode 版均保留"
 else
   ERRORS=$((ERRORS + field_errors))
 fi

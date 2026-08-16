@@ -77,6 +77,8 @@ Advisor 在关键决策点介入质疑，QA 和 Guardian 的首要职责是"找�
 
 两种运行时共享同一套归属表（`routing.yaml`）和 Agent 核心约束（`prompts/`）。9 个子 Agent 两版已收敛为同款精简版，核心章节（红线、职责边界、质量门禁、协作接口）保持一致。但各有运行时特定的头部（front matter）、产出路径（`$OPC_WORK_PATH/` vs `.opencode/work/`）和段落差异（如 director 的调度机制描述），并非逐字相同。改规则时须同步两份核心章节并跑 `bash scripts/quality-gate.sh` 确认（0 errors = 无漂移）。
 
+> **已知的有意差异**：`prompts/` 版的「能力边界」章节（如 qa.md:76、agent-manager.md）在 `.opencode/agents/` 版中由 front matter 的 `skills:` 字段替代——OpenCode 用 front matter 机制声明 skill 依赖，Claude Code 用正文段落。此为设计而非漂移，不要"修复"。
+
 ### OpenCode Skill 说明
 
 OpenCode 的 agent front matter 声明了若干 skill（如 anysearch、multi-search-engine 等），目录 `.opencode/skills/` 下需自行准备。若 skill 缺失，系统按 Director prompt 中的降级规则处理：搜索类走 webfetch 替代，流程编排类走 prompt 内置逻辑，不会中断。Claude Code 侧无 skill 机制，可忽略。
