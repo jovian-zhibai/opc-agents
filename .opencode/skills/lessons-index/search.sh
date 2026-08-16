@@ -31,6 +31,12 @@ for lesson_file in "$LESSONS_DIR"/*.md; do
         continue
     fi
 
+    # 状态过滤（确认闸）：draft 草稿不参与检索；active 或未标注 status 视为有效
+    # （历史教训无 front matter 属正常，默认视为 active 保留检索价值）
+    if grep -q "^status:[[:space:]]*draft" "$lesson_file" 2>/dev/null; then
+        continue
+    fi
+
     filename=$(basename "$lesson_file")
     # 用临时变量读取内容，避免 pipe 问题
     file_content=$(grep -v '^$' "$lesson_file" 2>/dev/null || true)
