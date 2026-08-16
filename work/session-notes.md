@@ -8,4 +8,4 @@
 
 [2026-08-13] Dev 修复 grove 404：fetchProviderModels 用 u.origin+'/models' 丢 baseUrl 路径(如 /v1)导致 OpenAI 兼容端点 /models 404；改为保留完整路径拼接。教训：拼 API URL 别用 u.origin 丢路径，先 baseUrl+尾斜杠处理再拼 '/models'。
 
-[2026-08-16] Director 总结：opc-agents 全面升级日。① 两轮审查修复 15 项问题（4.8 漂移检查重写/4b 驼峰/产出物 gc 清除/密钥占位）② 三项优化（任务前查教训 hook、sync 红线段同步、CLAUDE.md 瘦身 357→303）③ 补齐 5 项缺口（教训确认闸 draft 过滤、pre-commit 自动跑 gate、审查报告归档、RULES-CHANGELOG、session-notes 引导注入）④ 教训 3 条入库（产出物不入库/检查机制自身也要被检查/双向 diff 误报）⑤ 质量评分 6.5→8.5。注意：hook 已装（~/.pi/agent/extensions/opc-lessons-hook.ts）需 reload 生效；pre-commit 已配（规则文件改动自动跑 gate）；opc-tool 实验已废弃删除（确认原 opc-agents 模式是对的，别重蹈覆辙造轮子）。
+[2026-08-16] Director 总结：opc-agents 全面升级日。① 两轮审查修复 15 项问题（4.8 漂移检查重写/4b 驼峰/产出物 gc 清除/密钥占位）② 三项优化（任务前查教训 hook、sync 红线段同步、CLAUDE.md 瘦身 357→303）③ 补齐 5 项缺口（教训确认闸 draft 过滤、pre-commit 自动跑 gate、审查报告归档、RULES-CHANGELOG、session-notes 引导注入）④ 教训 3 条入库（产出物不入库/检查机制自身也要被检查/双向 diff 误报）⑤ 质量评分 6.5→8.5。注意：教训/流程机制已迁移到双运行时（pi 纯净删扩展 / CC 用 .claude/hooks/lessons-prompt.py UserPromptSubmit hook / OC 用 director.md 会话启动自动检查章节）；pre-commit 已配（规则文件改动自动跑 gate）；opc-tool 实验已废弃删除（确认原 opc-agents 模式是对的，别重蹈覆辙造轮子）。
