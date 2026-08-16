@@ -53,3 +53,6 @@ pnpm-lock.yaml
 pnpm-workspace.yaml
 # Python 缓存（不提交）
 scripts/__pycache__/
+.herdr-finding.md
+# 系统产出物不入库（公众号文章/配图等本地工作成果）
+output/
