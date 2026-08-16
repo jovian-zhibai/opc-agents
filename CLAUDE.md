@@ -123,40 +123,17 @@
 
 ## 任务分级
 
-| 级别 | 场景 | 调用谁 |
-| ------ | ------ | -------- |
-| L0 | 简单问答、纯展示查询 | 自己搞定 |
-| L1 | 代码小改、需求分析 | 调 1 个子 Agent |
-| L2 | 功能开发、技术方案 | 调 2-3 个，走流水线 |
-| L3 | 架构决策、产品方向 | 全员 + 创始人确认 |
+L0 自己搞定 / L1 调 1 个 / L2 调 2-3 个走流水线 / L3 全员+创始人确认。详见 `prompts/director.md`。
 
 ---
 
 ## 开发流水线
 
-Product(需求澄清) → UI-UX(设计) → Dev+Advisor(技术方案) → Dev(实现) → QA(验证,最多3轮) → Director(归档)
-
-- 大部分步骤 Director 自动推进，不需要问创始人
-- 关键暂停节点：架构变更、QA 3次失败、涉及钱
-- 每完成一阶段执行 `python3 scripts/state-manager.py checkpoint {任务名} {阶段} {进度}`
-
-### Bug 修复流水线
-
-创始人报告问题 → QA 排查确认 → Dev 修复 → QA 回归验证 → 归档(Director)
-
-### 事故流水线
-
-DETECTED → TRIAGED → MITIGATED → RESOLVED → POSTMORTEM
-
-| 阶段 | 负责 Agent | 产出 |
-| ------ | ----------- | ------ |
-| DETECTED | Guardian/Dev | 告警信息 |
-| TRIAGED | Director | 风险评级（P0/P1/P2） |
-| MITIGATED | Dev | 临时止血措施 |
-| RESOLVED | Dev | 根因修复 |
-| POSTMORTEM | Director | 复盘报告 → 知识库 04-Solutions/ |
-
-P0 事故立即通知创始人，不等流程。
+Product → UI-UX → Dev+Advisor → Dev → QA(最多3轮) → Director(归档)。
+关键暂停节点：架构变更 / QA 3次失败 / 涉及钱。
+Bug 修复：QA 排查 → Dev 修复 → QA 回归 → 归档。
+事故：DETECTED → TRIAGED → MITIGATED → RESOLVED → POSTMORTEM。
+详见 `prompts/director.md`。
 
 ---
 
@@ -179,18 +156,7 @@ P0 事故立即通知创始人，不等流程。
 
 ## Advisor 分级介入
 
-| 任务级别 | 介入程度 |
-| ---------- | ---------- |
-| 轻量（1 个 Agent） | 不介入 |
-| 中等（2-3 个 Agent） | 关键决策点介入 |
-| 重大（全员） | 全程参与 |
-
-必须请 Advisor 发言的节点：
-
-1. Director 输出分析结论后
-2. Dev 完成代码后
-3. Product 输出需求后
-4. 任何 Agent 含"需要决策"时
+轻量不介入 / 中等关键节点介入 / 重大全程参与。必请 Advisor 发言：Director 输出结论后、Dev 完成代码后、Product 输出需求后、任何含"需要决策"时。详见 `prompts/director.md` 会议流程与决策权限节。
 
 ---
 
@@ -263,13 +229,7 @@ Claude Code 下不使用 OpenCode skill 名。等价工具：
 
 ## 中断恢复
 
-新会话启动时，执行 `python3 scripts/state-manager.py resume`：
-
-1. 有未完成任务 → 读取已完成产出，从中断点继续
-2. 同时读取 `$OPC_WORK_PATH/session-notes.md` 最后 20 行，避免重复踩坑
-3. 没有 → 正常启动
-
-长任务（>30分钟）分段保存到 `$OPC_WORK_PATH/{任务名}/parts/`
+新会话启动执行 `python3 scripts/state-manager.py resume`；读 session-notes.md 最后 20 行。长任务分段存 work/{任务名}/parts/。详见 `prompts/director.md`。
 
 ---
 
@@ -319,18 +279,7 @@ Claude Code 下不使用 OpenCode skill 名。等价工具：
 
 ## 汇报格式
 
-```
-━━━━━━━━━━━━━━━━━━━━━
-📋 方案摘要
-[一段话说清楚做了什么]
-📝 各 Agent 核心产出
-- Product：[一句话]
-- Dev：[一句话]
-- QA：[一句话]
-❓ 需要你决策的问题
-1. [问题] → 选项：A / B
-━━━━━━━━━━━━━━━━━━━━━
-```
+方案摘要 / 各 Agent 核心产出 / 需要创始人决策的问题。详见 `prompts/director.md`。
 
 ---
 
@@ -351,7 +300,4 @@ Claude Code 下不使用 OpenCode skill 名。等价工具：
 
 ## 成本意识
 
-- 轻量任务 1 个 Agent
-- 中等任务 ≤ 3 轮讨论
-- 重大任务无限制
-- 讨论超过 3 轮未达成一致，Director 裁决或上报创始人
+轻量 1 个 Agent / 中等 ≤3 轮 / 重大无限制；讨论超 3 轮 Director 裁决或上报。详见 `prompts/director.md` 决策权限节。
