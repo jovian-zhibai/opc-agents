@@ -36,8 +36,8 @@ echo ""
 echo "📋 prompts/ 关键章节检查："
 for prompt_file in "$PROMPTS_DIR"/*.md; do
   agent_name=$(basename "$prompt_file" .md)
-  if ! grep -qE "## (核心职责|核心能力|你的定位|核心原则)" "$prompt_file" 2>/dev/null && \
-     ! grep -qE "## (红线|协作接口|产出规则|工作流程)" "$prompt_file" 2>/dev/null; then
+  if ! grep -qE "## (核心职责|核心能力|你的定位|核心原则)" "$prompt_file" 2>/dev/null &&
+    ! grep -qE "## (红线|协作接口|产出规则|工作流程)" "$prompt_file" 2>/dev/null; then
     echo "  ❌ $agent_name — 缺少核心职责/红线/协作接口等关键章节"
     ERRORS=$((ERRORS + 1))
   fi
@@ -172,11 +172,20 @@ if [ -f "$PROMPTS_DIRECTOR" ] && [ -f "$OPENCODE_DIRECTOR" ]; then
   fi
 
   # 检查"兼容声明"红线是否在两份中同步（连这条不同步就是讽刺）
-  if ! grep -q "不改规则不同步" "$PROMPTS_DIRECTOR" 2>/dev/null || \
-     ! grep -q "不改规则不同步" "$OPENCODE_DIRECTOR" 2>/dev/null; then
+  if ! grep -q "不改规则不同步" "$PROMPTS_DIRECTOR" 2>/dev/null ||
+    ! grep -q "不改规则不同步" "$OPENCODE_DIRECTOR" 2>/dev/null; then
     echo "  ❌ '不改规则不同步'红线在其中一份 director 中缺失，连兼容声明本身都没同步"
     DRIFT_ERRORS=$((DRIFT_ERRORS + 1))
   fi
+
+  # 检查"会话收尾/反馈信号"节（阶段三反馈线）是否同步——正文漂移靠多锚点捕获
+  for anchor in "反馈信号" "agent-metrics" "会话收尾"; do
+    if ! grep -q "$anchor" "$PROMPTS_DIRECTOR" 2>/dev/null ||
+      ! grep -q "$anchor" "$OPENCODE_DIRECTOR" 2>/dev/null; then
+      echo "  ❌ 锚点 '$anchor' 未在两份 director 中同时存在（反馈信号节漂移，正文未同步）"
+      DRIFT_ERRORS=$((DRIFT_ERRORS + 1))
+    fi
+  done
 
   if [ "$DRIFT_ERRORS" -eq 0 ]; then
     echo "  ✅ 两份 director 核心内容一致"
@@ -220,7 +229,7 @@ BOUNDARY_HEADERS=("与其他 Agent 的职责边界" "代码审查分工")
 boundary_errors=0
 
 for a in "${ACTUAL_PROMPTS[@]}"; do
-  [ "$a" = "director" ] && continue  # director 走 4.5 专门检查
+  [ "$a" = "director" ] && continue # director 走 4.5 专门检查
   prompts_f="$PROMPTS_DIR/$a.md"
   opencode_f="$AGENTS_DIR/$a.md"
   [ ! -f "$prompts_f" ] || [ ! -f "$opencode_f" ] && continue
@@ -259,6 +268,7 @@ echo ""
 # ---------- 5. Skill 引用检查 ----------
 echo "🎯 Skill 引用完整性检查："
 echo "  ℹ️  社区 skill 运行时安装、不提交仓库——以下缺失为预期，非错误。"
+echo "  ℹ️  全局依赖见 routing.yaml『全局依赖』注释（如 anysearch 仅存在于 ~/.agents/skills/）。"
 if [ -d "$AGENTS_DIR" ]; then
   skill_warns=0
   for agent_file in "$AGENTS_DIR"/*.md; do
@@ -277,16 +287,22 @@ if [ -d "$AGENTS_DIR" ]; then
         skill_name=$(echo "$line" | sed -n 's/^[[:space:]]*-[[:space:]]*//p' | sed 's/[[:space:]]*#.*//')
         if [ -n "$skill_name" ]; then
           if [ ! -d "$SKILLS_DIR/$skill_name" ]; then
+            # 逐个列出缺失项（不再合并为 1 个汇总警告），区分全局依赖与完全缺失
+            if [ -d "$HOME/.agents/skills/$skill_name" ]; then
+              echo "  ⚠️  ${agent_name} → ${skill_name}：全局依赖（存在于 ~/.agents/skills/，OpenCode 本地未安装属预期）"
+            else
+              echo "  ⚠️  ${agent_name} → ${skill_name}：本地与全局均不存在（社区 skill 未安装，或引用已失效，建议对照 routing.yaml 全局依赖清单核对）"
+            fi
             skill_warns=$((skill_warns + 1))
           fi
         fi
       fi
-    done < "$agent_file"
+    done <"$agent_file"
   done
   if [ "$skill_warns" -eq 0 ]; then
     echo "  ✅ 所有 skill 引用完整"
   else
-    echo "  ⚠️  $skill_warns 个 skill 声明对应目录缺失（社区 skill 未安装，预期行为）"
+    echo "  ⚠️  共 $skill_warns 个缺失（逐个见上；社区 skill 未安装属预期行为，不阻塞）"
     WARNINGS=$((WARNINGS + 1))
   fi
 fi
@@ -344,18 +360,26 @@ fi
 echo ""
 
 # ---------- 7.5. Secret 字面值扫描 ----------
-echo "🔑 Secret 字面值扫描（源码）："
-SECRET_HITS=$(grep -rnE 'sk-[A-Za-z0-9]{20,}|SENSENOVA_API_KEY=.{5,}|api_key=.{10,}|token=.{20,}' "$PROJECT_DIR" \
-  --include="*.py" --include="*.sh" --include="*.js" --include="*.ts" \
-  --include="*.yml" --include="*.yaml" --include="*.json" --include="*.env" \
-  --exclude-dir=.git --exclude-dir=.opencode/skills --exclude-dir=node_modules --exclude-dir=scripts --exclude-dir=.reasonix \
-  --exclude='*.lock' --exclude='*.bak' 2>/dev/null || true)
+echo "🔑 Secret 字面值扫描（git tracked 文件）："
+# 只扫『git 跟踪 + 未被 ignore 的未跟踪』文件（即会被提交进仓库的集合）：
+#   - .env 已 .gitignore，本地含真实 key，纳入扫描只会误报——天然排除
+#   - .env.example 是占位符模板，同样排除
+#   - 排除 quality-gate.sh 自身（其正文含正则定义，属自引用误报）
+SCAN_FILES=$(git ls-files --cached --others --exclude-standard 2>/dev/null |
+  grep -vE '(^|/)\.env(\.example)?$' | grep -v '^scripts/quality-gate.sh$' || true)
+SECRET_HITS=""
+if [ -n "$SCAN_FILES" ]; then
+  # 过滤掉含正则定义字面本身的命中（quality-gate.sh/ci.yml 等检查脚本正文含模式文本，属自引用误报）
+  SECRET_HITS=$(printf '%s\n' "$SCAN_FILES" | xargs grep -nE 'sk-[A-Za-z0-9]{20,}|SENSENOVA_API_KEY=.{5,}|api_key=.{10,}|token=.{20,}' 2>/dev/null |
+    grep -vF -e 'sk-[A-Za-z0-9]{20,}' -e 'api_key=.{10,}' -e 'token=.{20,}' -e 'SENSENOVA_API_KEY=.{5,}' \
+      -e 'sk-\[A-Za-z0-9\]\{20,\}' -e 'api_key=\.\{10,\}' -e 'token=\.\{20,\}' -e 'SENSENOVA_API_KEY=\.\{5,\}' || true)
+fi
 if [ -n "$SECRET_HITS" ]; then
-  echo "  ❌ 源码中发现疑似硬编码密钥："
+  echo "  ❌ 将被提交进仓库的文件中发现疑似硬编码密钥："
   echo "$SECRET_HITS" | while IFS= read -r line; do echo "     $line"; done
   ERRORS=$((ERRORS + 1))
 else
-  echo "  ✅ 源码中未发现硬编码密钥"
+  echo "  ✅ 将被提交的文件中未发现硬编码密钥（.env/.env.example 为本地配置与模板，不纳入）"
 fi
 
 echo ""
@@ -375,19 +399,22 @@ else
       local desc="$1" tool="$2" path="$3" expected="$4"
       local input="{\"tool_name\":\"$tool\",\"tool_input\":{\"file_path\":\"$path\"}}"
       local actual
-      actual=$(echo "$input" | { python3 "$HOOK_SCRIPT" 2>/dev/null; echo $?; } || true)
+      actual=$(echo "$input" | {
+        python3 "$HOOK_SCRIPT" 2>/dev/null
+        echo $?
+      } || true)
       actual=$(echo "$actual" | tail -1)
       if [ "$actual" -ne "$expected" ]; then
         echo "  ❌ $desc -> exit $actual (expected $expected)"
         hook_errors=$((hook_errors + 1))
       fi
     }
-    hook_test "CLAUDE.md 拦截"      "Write" "CLAUDE.md" 1
-    hook_test "routing.yaml 拦截"   "Edit"  "routing.yaml" 1
-    hook_test "prompts/ 拦截"       "Write" "prompts/qa.md" 1
+    hook_test "CLAUDE.md 拦截" "Write" "CLAUDE.md" 1
+    hook_test "routing.yaml 拦截" "Edit" "routing.yaml" 1
+    hook_test "prompts/ 拦截" "Write" "prompts/qa.md" 1
     hook_test ".opencode/agents/ 拦截" "Edit" ".opencode/agents/director.md" 1
-    hook_test "普通源码放行"        "Write" "src/main.py" 0
-    hook_test "Read 放行"           "Read"  "prompts/qa.md" 0
+    hook_test "普通源码放行" "Write" "src/main.py" 0
+    hook_test "Read 放行" "Read" "prompts/qa.md" 0
 
     if [ "$hook_errors" -eq 0 ]; then
       echo "  ✅ Hook 自检通过（关键路径 exit code 正确）"

@@ -118,7 +118,7 @@ routes:
     agent: "AgentManager"
     sequential: false
     director_action: "调度 AgentManager"
-    note: "P0-1 修正：原两份 director 错误写为 Dev，以 CLAUDE.md:99 为准。AgentManager 负责全生命周期。"
+    note: "修正：原两份 director 错误写为 Dev，以 CLAUDE.md『核心职责』节为准（不用行号，行号会漂移）。AgentManager 负责全生命周期。"
 
   - id: "agent-lifecycle"
     operation: "Agent 生命周期管理"
@@ -157,11 +157,20 @@ routes:
     sequential: false
     director_action: "维护任务面板"
 
+  # ── 配置修改 ──
+  - id: "edit-config"
+    operation: "修改配置文件/系统文件"
+    triggers: ["改配置", "修改配置", "改系统文件", "改配置文件", "改 routing"]
+    agent: "Dev"
+    sequential: false
+    director_action: "调度 Dev + 审查产出；若涉及 Agent prompt/规则则归 AgentManager（见 edit-prompt）"
+    note: "与 CLAUDE.md『核心职责』节/自检清单一致：改配置→Dev，改 prompt/Agent 规则→AgentManager"
+
   # Advisor 不走确定性关键词路由。
   # 由 Director 规则触发：会议（必参会）、关键决策（必须发言）、被调用时介入。
   - id: "advisor"
     operation: "分析质疑/决策辅助"
-    triggers: []  # 无关键词触发，走 fallback: director-intent
+    triggers: [] # 无关键词触发，走 fallback: director-intent
     agent: "Advisor"
     sequential: false
     director_action: "会议/关键决策点必须请 Advisor 发言；被调用时按需介入"
@@ -173,6 +182,11 @@ routes:
 fallback: "director-intent"
 
 # ─── Skill 路由表：意图 → 对应 skill ───
+# 全局依赖（不提交仓库）：以下 skill 仅存在于 ~/.agents/skills/（用户级），不在 .opencode/skills/ 下，
+#   OpenCode 本地未安装属预期，缺失时按 director 的『Skill 缺失降级』规则走降级路径：
+#   - anysearch：通用搜索（全局已安装 ✓）
+#   - multi-search-engine：备选搜索（全局也未安装，缺失时降级 webfetch/联网搜索）
+# 其余 skill 均应在 .opencode/skills/ 下存在；pdf/docx/xlsx/pptx 为 Claude Code 专属，OC 下走降级。
 # 高频 skill 按意图分组。命中后加载给 Agent 使用。
 # 未命中的走 skill-index 检索（search.sh 实时扫描全部 skill）。
 skill_routes:
@@ -198,7 +212,13 @@ skill_routes:
 
   # 测试
   - intent: ["测试", "单元测试", "集成测试", "E2E", "自动化测试"]
-    skills: ["test-driven-development", "e2e-testing", "browser-qa", "verification-before-completion"]
+    skills:
+      [
+        "test-driven-development",
+        "e2e-testing",
+        "browser-qa",
+        "verification-before-completion",
+      ]
   - intent: ["调试", "bug", "报错排查", "修 bug"]
     skills: ["systematic-debugging", "code-review"]
 
@@ -208,7 +228,7 @@ skill_routes:
 
   # 设计
   - intent: ["UI 设计", "UX", "原型", "设计稿", "组件库设计"]
-    skills: ["ui-ux-designer", "frontend-design"]
+    skills: ["ux-designer", "frontend-design"]
 
   # 内容/文档
   - intent: ["写文章", "博客", "公众号", "教程", "推文", "文案"]
@@ -218,13 +238,13 @@ skill_routes:
 
   # 文件处理
   - intent: ["PDF", "生成 PDF", "读取 PDF"]
-    skills: ["pdf"]  # Claude Code 专属 skill，OpenCode 环境不可用，OC 下走降级
+    skills: ["pdf"] # Claude Code 专属 skill，OpenCode 环境不可用，OC 下走降级
   - intent: ["Word", "docx", "文档生成"]
-    skills: ["docx"]  # Claude Code 专属 skill，OpenCode 环境不可用，OC 下走降级
+    skills: ["docx"] # Claude Code 专属 skill，OpenCode 环境不可用，OC 下走降级
   - intent: ["Excel", "xlsx", "表格", "CSV"]
-    skills: ["xlsx"]  # Claude Code 专属 skill，OpenCode 环境不可用，OC 下走降级
+    skills: ["xlsx"] # Claude Code 专属 skill，OpenCode 环境不可用，OC 下走降级
   - intent: ["PPT", "演示文稿", "slides"]
-    skills: ["pptx"]  # Claude Code 专属 skill，OpenCode 环境不可用，OC 下走降级
+    skills: ["pptx"] # Claude Code 专属 skill，OpenCode 环境不可用，OC 下走降级
 
   # 代码审查/质量
   - intent: ["代码审查", "PR review", "代码质量"]
@@ -252,7 +272,7 @@ skill_routes:
   - intent: ["复杂任务", "多步骤", "拆解计划"]
     skills: ["autoplan", "brainstorming"]
   - intent: ["查一下", "搜索", "调研", "最新"]
-    skills: ["anysearch", "deep-research"]
+    skills: ["anysearch", "deep-research"] # anysearch 为全局依赖（~/.agents/skills/）
 
 # ─── MCP 路由：什么场景用什么 MCP ───
 # MCP 提供外部数据/能力，skill 是本地提示词+脚本。互为补充。

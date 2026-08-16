@@ -3,6 +3,7 @@
 # 扫描 08-Lessons/ 目录，匹配文件名 + 正文
 # 用法: bash search.sh "关键词"
 # 输出：命中时输出文件路径 + 原文；未命中静默返回（空输出，退出码 0）
+# 防刷屏：命中 >3 条时只列路径不 cat 全文；≤3 条才输出完整正文。
 
 set -euo pipefail
 
@@ -20,8 +21,10 @@ if [ -z "$query" ]; then
     exit 0
 fi
 
+# 最多输出完整正文的命中条数；超过则只列路径，避免刷屏
+MAX_FULL=3
 
-matched=0
+matched_files=()
 for lesson_file in "$LESSONS_DIR"/*.md; do
     # 跳过非文件
     if [ ! -f "$lesson_file" ]; then
@@ -29,20 +32,36 @@ for lesson_file in "$LESSONS_DIR"/*.md; do
     fi
 
     filename=$(basename "$lesson_file")
-    # 用临时文件读取内容，避免 pipe 问题
+    # 用临时变量读取内容，避免 pipe 问题
     file_content=$(grep -v '^$' "$lesson_file" 2>/dev/null || true)
 
     # 匹配文件名 + 正文（here-string，不用 pipe）
     if grep -qi "$query" <<<"$filename$file_content" 2>/dev/null; then
-        echo "=== $lesson_file ==="
-        cat "$lesson_file" 2>/dev/null || true
-        echo ""
-        matched=$((matched + 1))
+        matched_files+=("$lesson_file")
     fi
 done
 
-# 已命中时输出提示；未命中时静默
-if [ "$matched" -ge 1 ]; then
-    echo "找到 $matched 条相关教训，建议在开始任务前阅读。"
+matched=${#matched_files[@]}
+# 未命中时静默退出
+if [ "$matched" -eq 0 ]; then
+    exit 0
+fi
+
+echo "找到 $matched 条相关教训，建议在开始任务前阅读。"
+
+if [ "$matched" -le "$MAX_FULL" ]; then
+    # 命中较少：输出完整正文
+    for lesson_file in "${matched_files[@]}"; do
+        echo ""
+        echo "=== $lesson_file ==="
+        cat "$lesson_file" 2>/dev/null || true
+        echo ""
+    done
+else
+    # 命中较多：只列路径，避免刷屏；提示用更精确的关键词重搜
+    echo "（命中较多，仅列出文件路径。需要详情请用更精确的关键词重搜。）"
+    for lesson_file in "${matched_files[@]}"; do
+        echo "  $lesson_file"
+    done
 fi
 exit 0

@@ -16,7 +16,10 @@ _EMPTY_STATE = {"events": [], "current_task": None, "history": []}
 
 
 def ensure_dir():
-    os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
+    try:
+        os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
+    except OSError as e:
+        raise OSError(f"无法创建状态目录 {os.path.dirname(STATE_FILE)}: {e}") from e
 
 
 @contextmanager
@@ -99,68 +102,86 @@ def load():
 def _raw_save(state):
     """直接写入文件（内部用，不加锁不备份）。"""
     ensure_dir()
-    with open(STATE_FILE, "w") as f:
-        json.dump(state, f, indent=2, ensure_ascii=False)
+    try:
+        with open(STATE_FILE, "w") as f:
+            json.dump(state, f, indent=2, ensure_ascii=False)
+    except OSError as e:
+        raise OSError(f"状态写入失败 {STATE_FILE}: {e}") from e
 
 
 def save(state):
     """安全保存：加锁 → 备份 → 写入。"""
     with file_lock():
-        # 先备份当前文件（如果存在且有效）
-        if os.path.exists(STATE_FILE):
-            if _try_load_json(STATE_FILE) is not None:
-                try:
-                    # 原子性：先写临时文件再 rename
-                    tmp_bak = BACKUP_FILE + ".tmp"
-                    with open(STATE_FILE, "r") as src:
-                        with open(tmp_bak, "w") as dst:
-                            dst.write(src.read())
-                    os.replace(tmp_bak, BACKUP_FILE)
-                except OSError:
-                    pass  # 备份失败不阻塞主流程
+        _save_locked(state)
 
-        _raw_save(state)
+
+def _save_locked(state):
+    """锁内保存（调用方已持锁）：备份 → 写入。"""
+    ensure_dir()
+    # 先备份当前文件（如果存在且有效）
+    if os.path.exists(STATE_FILE):
+        if _try_load_json(STATE_FILE) is not None:
+            try:
+                # 原子性：先写临时文件再 rename
+                tmp_bak = BACKUP_FILE + ".tmp"
+                # 清理上次异常中断残留的临时备份，避免陈旧内容被误 rename
+                try:
+                    os.remove(tmp_bak)
+                except OSError:
+                    pass
+                with open(STATE_FILE, "r") as src:
+                    with open(tmp_bak, "w") as dst:
+                        dst.write(src.read())
+                os.replace(tmp_bak, BACKUP_FILE)
+            except OSError:
+                pass  # 备份失败不阻塞主流程
+
+    _raw_save(state)
 
 
 def log_event(event_type, data):
-    state = load()
-    state.setdefault("events", []).append({
-        "type": event_type,
-        "data": data,
-        "timestamp": datetime.now().isoformat()
-    })
-    save(state)
+    # 整个 读-改-写 持锁，避免 TOCTOU（load 与 save 之间被并发写打断）
+    with file_lock():
+        state = load()
+        state.setdefault("events", []).append({
+            "type": event_type,
+            "data": data,
+            "timestamp": datetime.now().isoformat()
+        })
+        _save_locked(state)
 
 
 def save_checkpoint(task_name, stage, progress, artifact_path=None):
-    state = load()
-    state["current_task"] = {
-        "name": task_name,
-        "current_stage": stage,
-        "progress": progress,
-        "artifact": artifact_path,
-        "updated_at": datetime.now().isoformat()
-    }
-    save(state)
+    with file_lock():
+        state = load()
+        state["current_task"] = {
+            "name": task_name,
+            "current_stage": stage,
+            "progress": progress,
+            "artifact": artifact_path,
+            "updated_at": datetime.now().isoformat()
+        }
+        _save_locked(state)
     print(f"检查点已保存: {task_name} / {stage} / {progress}")
 
 
 def complete_stage(stage_name, artifact_path=None):
-    state = load()
-    task = state.get("current_task")
-    if not task:
-        print("没有活跃任务")
-        return
+    with file_lock():
+        state = load()
+        task = state.get("current_task")
+        if not task:
+            print("没有活跃任务")
+            return
 
-    completed = task.setdefault("stages_completed", [])
-    if stage_name not in completed:
-        completed.append(stage_name)
+        completed = task.setdefault("stages_completed", [])
+        if stage_name not in completed:
+            completed.append(stage_name)
 
-    if artifact_path:
-        task.setdefault("artifacts", {})[stage_name] = artifact_path
+        if artifact_path:
+            task.setdefault("artifacts", {})[stage_name] = artifact_path
 
-    task["updated_at"] = datetime.now().isoformat()
-    save(state)
+        task["updated_at"] = datetime.now().isoformat()
+        _save_locked(state)
     print(f"阶段完成: {stage_name}")
 
 
@@ -182,17 +203,18 @@ def get_resume_info():
 
 
 def clear_task():
-    state = load()
-    task = state.pop("current_task", None)
-    if task:
+    with file_lock():
+        state = load()
+        task = state.pop("current_task", None)
+        if not task:
+            print("没有活跃任务")
+            return
         state.setdefault("history", []).append({
             "task": task,
             "completed_at": datetime.now().isoformat()
         })
-        save(state)
-        print(f"任务已归档: {task['name']}")
-    else:
-        print("没有活跃任务")
+        _save_locked(state)
+    print(f"任务已归档: {task['name']}")
 
 
 def show_status():

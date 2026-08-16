@@ -35,12 +35,12 @@
   "permission": {
     "edit": {
       "*": "allow",
-      "prompts/**": "ask",
-      ".opencode/agents/**": "ask",
-      "CLAUDE.md": "ask",
-      "routing.yaml": "ask",
-      "feedback.schema.json": "ask",
-      "opencode.json": "ask"
+      "prompts/**": "deny",
+      ".opencode/agents/**": "deny",
+      "CLAUDE.md": "deny",
+      "routing.yaml": "deny",
+      "feedback.schema.json": "deny",
+      "opencode.json": "deny"
     }
   }
 }

@@ -44,7 +44,7 @@ opencode
 ## Agent 团队
 
 | 角色 | 文件 | 中文名 | 职责 |
-|------|------|--------|------|
+| ------ | ------ | -------- | ------ |
 | **Director** | `prompts/director.md` | 总指挥 | 调度决策、信息汇总、质量把关 |
 | **Advisor** | `prompts/advisor.md` | 智囊 | 分析质疑、决策辅助 |
 | **Dev** | `prompts/dev.md` | 工程师 | 代码实现、技术方案、部署运维 |
@@ -69,7 +69,7 @@ Advisor 在关键决策点介入质疑，QA 和 Guardian 的首要职责是"找�
 ## 双运行时支持
 
 | | Claude Code | OpenCode |
-|---|---|---|
+| --- | --- | --- |
 | 入口文件 | `CLAUDE.md` | `opencode.json` + `.opencode/agents/` |
 | Agent 调度 | task tool | Tab / @提及 |
 | 提示词目录 | `prompts/`（共享） | `prompts/`（共享） + `.opencode/agents/`（front matter） |
@@ -83,7 +83,7 @@ OpenCode 的 agent front matter 声明了若干 skill（如 anysearch、multi-se
 ## 任务分级
 
 | 级别 | 场景 | 调用谁 |
-|------|------|--------|
+| ------ | ------ | -------- |
 | L0 | 格式调整、简单问答 | Director 自己搞定 |
 | L1 | 代码小改、需求分析 | 调 1 个子 Agent |
 | L2 | 功能开发、技术方案 | 调 2-3 个，走流水线 |
@@ -160,7 +160,19 @@ mkdir -p $OPC_WORK_PATH $OPC_KNOWLEDGE_PATH
 以下为有意不做的工程化项，非遗漏：
 
 | 决策 | 理由 | 日期 |
-|------|------|------|
+| ------ | ------ | ------ |
 | 不引入 CI 门禁（quality-gate 不进 PR pipeline） | 一人公司无 PR 流程，本地跑脚本即可 | 2026-07-04 |
 | 不引入 OpenCode 运行时 CI | 当前主力运行时为 Claude Code，无 CI 环境 | 2026-07-04 |
 | 不做 P2-4 quality-gate 进 CI | 同上，本地 quality-gate.sh 手动执行已足够 | 2026-07-04 |
+
+### 双运行时文件保护（预期设计，勿“修复”）
+
+Director 红线要求不直接改系统文件。两个运行时的物理拦截力度已对齐：
+
+| 运行时 | 拦截方式 |
+|--------|----------|
+| Claude Code | `.claude/settings.json` PreToolUse hook（protect-prompts.py）对 `prompts/`、`.opencode/agents/`、`CLAUDE.md`、`routing.yaml`、`feedback.schema.json`、`opencode.json` 的 Write/Edit 硬拦截（exit 1） |
+| OpenCode | `opencode.json` permission.edit 对相同路径设为 `deny`（不允许、不询问） |
+
+这是**预期设计**：Director 改系统文件的通道在两个运行时都被物理切断，不走“LLM 自觉”或“弹窗询问”。
+受保护文件的修改一律由创始人手动进行，或经正式流程（调度 AgentManager/Dev 通过其它方式执行）。

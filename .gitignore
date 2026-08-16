@@ -2,6 +2,9 @@
 
 # 运行时状态（不提交）
 scripts/state.json
+scripts/state.json.bak
+scripts/state.json.lock
+scripts/state.json.bak.tmp
 # 知识库（独立仓库，不提交）
 project-context.md
 # Playwright MCP 日志（不提交）
@@ -21,6 +24,7 @@ skills-archive/
 !.opencode/skills/meeting-minutes/
 !.opencode/skills/knowledge-search/
 !.opencode/skills/skill-index/
+!.opencode/skills/lessons-index/
 # 长任务产出（运行时产物，不提交）
 .opencode/work/*
 !.opencode/work/.gitkeep
@@ -44,5 +48,8 @@ node_modules/
 package-lock.json
 *.tgz
 package.json
+# pnpm 误建（仓库使用 npm，pnpm-lock/pnpm-workspace 非有意引入，不提交）
+pnpm-lock.yaml
+pnpm-workspace.yaml
 # Python 缓存（不提交）
 scripts/__pycache__/
