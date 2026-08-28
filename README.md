@@ -274,6 +274,7 @@ mkdir -p $OPC_WORK_PATH $OPC_KNOWLEDGE_PATH
 | Director 单源化 | Director 纳入生成器（去掉 SKIP_ROLES），5 运行时 director 文件从 prompts/ 生成；CLAUDE.md 红线节用标记块注入，块外手工内容保持不动 | 2026-08 |
 | Codex agent 不硬编码 model | `.codex/agents/*.toml` 只含 name/description/developer_instructions，model 由用户自己的 `~/.codex/config.toml` 全局配置决定（ConfigToml.model 是 Option，缺省回落全局）。硬编码会把私有模型名/本地代理语义泄进公开仓库，且模型属环境关切不该焊进入库产物 | 2026-08 |
 | description 单源化 | `prompts/*.md` 加 front matter（只含 description），codex 的 description 从 prompts/ 提取，不再从 .opencode/ 捞，消除跨运行时耦合 | 2026-08 |
+| Advisor 选择性精简（基准测试验证） | 对 Advisor prompt 的波特五力/SWOT/决策矩阵三个框架做 A/B 基准测试（3 任务 × 2 变体 × 3 次 SenseNova 调用，人工盲评配对打分）。结论：决策矩阵可精简（原版 4.43 vs 精简版 4.58，噪音级），波特五力+SWOT 必须保留（原版 4.70 vs 精简版 3.83，裂口 0.87）。机制：详细框架的分步骨架对弱模型起"结构脚手架"作用，骨架被砍后弱模型会即兴自造子表、过度展开、撞到输出长度上限导致来不及下结论。精简原则：**可砍提问清单/案例/散文，保留框架的分步骨架**。已 merge 到 `prompts/advisor.md`（只砍决策矩阵 ~28 行，五运行时重新生成） | 2026-08 |
 
 ### 多运行时文件保护（预期设计，勿"修复"）
 
