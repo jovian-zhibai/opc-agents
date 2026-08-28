@@ -18,9 +18,77 @@ front_matter:
   enabled: true
   # Pi subagent 扩展的 front matter 字段：name/description/tools
   # 当前从现有 .pi/agents/ 提取（如果存在），未来独立配置化
-  source: existing
+  source: template
 
-# ─── 路径前缀替换规则 ───
+  template:
+    roles:
+      advisor: |
+        name: advisor
+        {{DESCRIPTION}}
+        tools:
+        - Read
+        - Write
+        - WebFetch
+      agent-manager: |
+        name: agent-manager
+        {{DESCRIPTION}}
+        tools:
+        - Read
+        - Edit
+        - Write
+      dev: |
+        name: dev
+        {{DESCRIPTION}}
+        tools:
+        - Read
+        - Edit
+        - Write
+        - Bash
+        - WebFetch
+      # director: 无 front matter
+      finance: |
+        name: finance
+        {{DESCRIPTION}}
+        tools:
+        - Read
+        - Write
+        - WebFetch
+      growth: |
+        name: growth
+        {{DESCRIPTION}}
+        tools:
+        - Read
+        - Write
+        - WebFetch
+      guardian: |
+        name: guardian
+        {{DESCRIPTION}}
+        tools:
+        - Read
+        - Write
+        - Bash
+        - WebFetch
+      product: |
+        name: product
+        {{DESCRIPTION}}
+        tools:
+        - Read
+        - Write
+        - Edit
+        - WebFetch
+      qa: |
+        name: qa
+        {{DESCRIPTION}}
+        tools:
+        - Read
+        - Write
+        - Bash
+      ui-ux: |
+        name: ui-ux
+        {{DESCRIPTION}}
+        tools:
+        - Read
+        - WebFetch
 path_replace:
   default:
     - from: "{{WORK_PATH}}/"

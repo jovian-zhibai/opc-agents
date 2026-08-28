@@ -282,13 +282,32 @@ def generate_role(role: str, adapter_config: dict, write: bool = False) -> dict:
     fm_config = adapter_config.get("front_matter", {})
     if fm_config.get("enabled", False):
         if fm_config.get("source") == "existing":
-            # 从现有输出文件提取 front matter
+            # 从现有输出文件提取 front matter（试点阶段，未来淘汰）
             existing_fm = extract_front_matter(output_file)
             if existing_fm:
                 # 去掉 content 开头可能存在的 front matter（prompts 版没有，但保险起见）
                 content = strip_leading_front_matter(content)
                 content = f"{existing_fm}\n\n{content}"
-        # template 模式未来实现
+        elif fm_config.get("source") == "template":
+            # 从 adapter 配置生成 front matter（单源模式，删了产物也能复原）
+            template_roles = fm_config.get("template", {}).get("roles", {})
+            role_template = template_roles.get(role)
+            if role_template:
+                # 去掉 content 开头可能存在的 front matter
+                content = strip_leading_front_matter(content)
+                # 拼接 front matter：配置块 + description 替换
+                # 配置块里可用 {{DESCRIPTION}} 占位符控制 description 的位置；
+                # 没有占位符时，description 放在最前面（兼容 opencode 格式）
+                if "{{DESCRIPTION}}" in role_template:
+                    fm_body = role_template.replace("{{DESCRIPTION}}", f"description: {prompts_description}")
+                else:
+                    fm_parts = [f"description: {prompts_description}"]
+                    fm_parts.append(role_template.rstrip("\n"))
+                    fm_body = "\n".join(fm_parts)
+                # 去掉末尾空行，避免 front matter 闭合前出现空行
+                fm_body = fm_body.rstrip("\n")
+                generated_fm = f"---\n{fm_body}\n---"
+                content = f"{generated_fm}\n\n{content}"
 
     # 6. 注入内容（在 front matter 拼接之后，确保 after_front_matter 位置正确）
     content = inject_content(content, sections_config.get("inject", []), role)
