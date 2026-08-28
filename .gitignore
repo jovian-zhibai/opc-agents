@@ -62,3 +62,4 @@ output/
 # work/ 下除 session-notes.md 外均为产出物（公众号草稿等），不入库
 work/*
 !work/session-notes.md
+benchmark/
