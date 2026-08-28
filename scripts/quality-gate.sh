@@ -49,8 +49,11 @@ fi
 echo ""
 
 # ---------- 2.5. prompts/ Front matter 完整性 ----------
+# prompts/ 为 Claude Code 共享版，按设计不含 front matter（front matter 是 .opencode/agents/ 的 OpenCode 专属机制）。
+# 因此「无 front matter」不构成警告（降级为 ℹ️ 信息），只检查「有开头 --- 但未闭合」的结构错误。
 echo "📋 prompts/ front matter 检查："
 pm_errors=0
+pm_without_fm=0
 for prompt_file in "$PROMPTS_DIR"/*.md; do
   agent_name=$(basename "$prompt_file" .md)
   first_line=$(head -1 "$prompt_file" 2>/dev/null)
@@ -62,12 +65,14 @@ for prompt_file in "$PROMPTS_DIR"/*.md; do
       pm_errors=$((pm_errors + 1))
     fi
   else
-    echo "  ⚠️  $agent_name — 无 front matter（第一行非 ---）"
-    WARNINGS=$((WARNINGS + 1))
+    pm_without_fm=$((pm_without_fm + 1))
   fi
 done
 if [ "$pm_errors" -eq 0 ]; then
-  echo "  ✅ 所有 prompts/ front matter 完整"
+  echo "  ✅ 所有 prompts/ front matter 结构完整"
+  if [ "$pm_without_fm" -gt 0 ]; then
+    echo "  ℹ️  $pm_without_fm 个 prompts/ 无 front matter（设计如此，Claude Code 共享版不要求 front matter）"
+  fi
 else
   ERRORS=$((ERRORS + pm_errors))
 fi
@@ -330,8 +335,9 @@ echo ""
 echo "🎯 Skill 引用完整性检查："
 echo "  ℹ️  社区 skill 运行时安装、不提交仓库——以下缺失为预期，非错误。"
 echo "  ℹ️  全局依赖见 routing.yaml『全局依赖』注释（如 anysearch 仅存在于 ~/.agents/skills/）。"
+echo "  ℹ️  skill 缺失均按 Director 降级规则处理（搜索类走 webfetch 等），不阻塞，故不计数警告。"
 if [ -d "$AGENTS_DIR" ]; then
-  skill_warns=0
+  skill_missing=0
   for agent_file in "$AGENTS_DIR"/*.md; do
     agent_name=$(basename "$agent_file" .md)
     in_skills=false
@@ -348,23 +354,22 @@ if [ -d "$AGENTS_DIR" ]; then
         skill_name=$(echo "$line" | sed -n 's/^[[:space:]]*-[[:space:]]*//p' | sed 's/[[:space:]]*#.*//')
         if [ -n "$skill_name" ]; then
           if [ ! -d "$SKILLS_DIR/$skill_name" ]; then
-            # 逐个列出缺失项（不再合并为 1 个汇总警告），区分全局依赖与完全缺失
+            # 逐个列出缺失项（不合并汇总），区分全局依赖与完全缺失
             if [ -d "$HOME/.agents/skills/$skill_name" ]; then
-              echo "  ⚠️  ${agent_name} → ${skill_name}：全局依赖（存在于 ~/.agents/skills/，OpenCode 本地未安装属预期）"
+              echo "  ℹ️  ${agent_name} → ${skill_name}：全局依赖（存在于 ~/.agents/skills/，OpenCode 本地未安装属预期）"
             else
-              echo "  ⚠️  ${agent_name} → ${skill_name}：本地与全局均不存在（社区 skill 未安装，或引用已失效，建议对照 routing.yaml 全局依赖清单核对）"
+              echo "  ℹ️  ${agent_name} → ${skill_name}：本地与全局均不存在（社区 skill 未安装，或引用已失效——若 routing.yaml 未声明预期，建议核对）"
             fi
-            skill_warns=$((skill_warns + 1))
+            skill_missing=$((skill_missing + 1))
           fi
         fi
       fi
     done <"$agent_file"
   done
-  if [ "$skill_warns" -eq 0 ]; then
+  if [ "$skill_missing" -eq 0 ]; then
     echo "  ✅ 所有 skill 引用完整"
   else
-    echo "  ⚠️  共 $skill_warns 个缺失（逐个见上；社区 skill 未安装属预期行为，不阻塞）"
-    WARNINGS=$((WARNINGS + 1))
+    echo "  ℹ️  共 $skill_missing 个缺失（逐个见上；社区 skill 未安装属预期行为，不阻塞）"
   fi
 fi
 
