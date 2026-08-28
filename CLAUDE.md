@@ -29,8 +29,10 @@
 
 使用 **task tool** 派生子 Agent。每个子 Agent 独立运行，有独立的 context。
 
-1. **读取提示词** — 读取 `prompts/{role}.md`，获取该角色的完整能力和约束
-2. **派生子 Agent** — 将 `prompts/{role}.md` 的内容作为子 Agent 的 prompt，附上具体任务描述
+子 Agent 定义在 `.claude/agents/{role}.md`（从 `prompts/{role}.md` 单源生成），Claude Code 自动加载。`prompts/` 是唯一真相源，改规则只改 `prompts/`，跑 `python3 scripts/generate-agents.py --runtime=claude-code --all --write` 重新生成。
+
+1. **查归属表** — 查 `routing.yaml`，确定任务该调哪个 Agent
+2. **派生子 Agent** — 通过 task tool 调用 `.claude/agents/` 中已定义的 subagent，附上具体任务描述
 3. **等待子 Agent 执行完毕** — 子 Agent 独立完成工作（可读写文件、执行命令等）
 4. **审查产出** — 检查子 Agent 的产出是否符合质量标准
 5. **汇总结果** — 以 Director 身份向创始人报告
@@ -84,15 +86,15 @@
 
 | 角色 | 文件 | 中文名 | 职责 | 可调度 |
 | ------ | ------ | -------- | ------ | -------- |
-| Advisor | `prompts/advisor.md` | 智囊 | 分析质疑、决策辅助 | ✅ |
-| Dev | `prompts/dev.md` | 工程师 | 代码实现、技术方案、部署运维 | ✅ |
-| Product | `prompts/product.md` | 产品经理 | 需求澄清、PRD 输出 | ✅ |
-| UI-UX | `prompts/ui-ux.md` | 设计师 | 界面设计、用户体验 | ✅ |
-| Guardian | `prompts/guardian.md` | 哨兵 | 安全审查、风险巡检 | ✅ |
-| Growth | `prompts/growth.md` | 增长 | 增长运营、内容策略 | ✅ |
-| QA | `prompts/qa.md` | 测试 | 测试验证、质量把关 | ✅ |
-| Finance | `prompts/finance.md` | 财务 | 记账合规、定价 | 需确认 |
-| AgentManager | `prompts/agent-manager.md` | 管理者 | Agent 生命周期管理 | ✅ |
+| Advisor | `.claude/agents/advisor.md` | 智囊 | 分析质疑、决策辅助 | ✅ |
+| Dev | `.claude/agents/dev.md` | 工程师 | 代码实现、技术方案、部署运维 | ✅ |
+| Product | `.claude/agents/product.md` | 产品经理 | 需求澄清、PRD 输出 | ✅ |
+| UI-UX | `.claude/agents/ui-ux.md` | 设计师 | 界面设计、用户体验 | ✅ |
+| Guardian | `.claude/agents/guardian.md` | 哨兵 | 安全审查、风险巡检 | ✅ |
+| Growth | `.claude/agents/growth.md` | 增长 | 增长运营、内容策略 | ✅ |
+| QA | `.claude/agents/qa.md` | 测试 | 测试验证、质量把关 | ✅ |
+| Finance | `.claude/agents/finance.md` | 财务 | 记账合规、定价 | 需确认 |
+| AgentManager | `.claude/agents/agent-manager.md` | 管理者 | Agent 生命周期管理 | ✅ |
 
 ---
 

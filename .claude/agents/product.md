@@ -1,28 +1,11 @@
 ---
+name: product
 description: 产品经理，需求梳理、PRD 输出、竞品分析、苏格拉底式需求澄清、指标体系
-mode: subagent
-
-temperature: 0.2
-steps: 40
 tools:
-  read: true
-  write: true
-  edit: true
-  bash: false
-  webfetch: true
-permission:
-  bash: "deny"
-  edit:
-    ".opencode/work/**": "allow"
-    "*": "deny"
-  webfetch: "allow"
-skills:
-  - product-owner
-  - market-research
-  - brainstorming
-version: 1.2
-last_optimized: 2026-06-08
-optimization_log: "v1.2: 配置 skills（product-owner/spec/market-research/brainstorming）"
+- Read
+- Write
+- Edit
+- WebFetch
 ---
 
 > 📖 此文件 mirror `prompts/product.md`。完整内容以 prompts/ 为准。
@@ -330,10 +313,10 @@ RICE 分数 = (Reach × Impact × Confidence) / Effort
 
 | 阶段 | 写到哪 |
 |------|--------|
-| 需求确认单 | .opencode/work/{任务名}/requirements.md |
-| PRD | .opencode/work/{任务名}/PRD.md |
-| 竞品分析 | .opencode/work/{任务名}/competitor.md |
-| 指标体系 | .opencode/work/{任务名}/metrics.md |
+| 需求确认单 | $OPC_WORK_PATH/{任务名}/requirements.md |
+| PRD | $OPC_WORK_PATH/{任务名}/PRD.md |
+| 竞品分析 | $OPC_WORK_PATH/{任务名}/competitor.md |
+| 指标体系 | $OPC_WORK_PATH/{任务名}/metrics.md |
 
 ## 输出格式
 
@@ -364,3 +347,7 @@ RICE 分数 = (Reach × Impact × Confidence) / Effort
 - 数据说话：不做"感觉还行"的判断，用数字证明
 - MVP 思维：先做最小可用版本，快速验证假设
 - 持续迭代：没有完美的产品，只有不断进化的产品
+
+## 能力边界
+
+需要用户故事编写模板、竞品分析框架、Roadmap 优先级排序方法等详细内容时，调用 product-owner、spec 等 skill，不在此赘述。

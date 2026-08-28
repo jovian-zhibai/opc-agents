@@ -1,0 +1,73 @@
+# OPC 运行时适配配置 — Claude Code
+# 此配置定义如何从 prompts/（唯一真相源）生成 Claude Code 运行时的 Agent 定义文件。
+# 生成器：scripts/generate-agents.py --runtime=claude-code
+
+runtime: claude-code
+name: Claude Code
+description: "Claude Code 运行时适配 — markdown + YAML front matter，Task tool 派生子 Agent"
+
+# ─── Agent 定义文件格式 ───
+agent_format:
+  type: markdown_yaml_frontmatter  # markdown_yaml_frontmatter / toml / plain_markdown
+  output_dir: .claude/agents/
+  file_extension: .md
+
+# ─── Front matter 配置 ───
+front_matter:
+  enabled: true
+  # Claude Code 的 front matter 字段：name/description/tools/disallowedTools/model
+  # 当前从现有 .claude/agents/ 提取（如果存在），未来独立配置化
+  source: existing
+  # 当 source=template 时使用（未来实现）
+  template: |
+    name: {{role}}
+    description: {{description}}
+    tools:
+      {{tools}}
+
+# ─── 路径前缀替换规则 ───
+path_replace:
+  default:
+    - from: "{{WORK_PATH}}/"
+      to: "$OPC_WORK_PATH/"
+  # Claude Code 所有角色用相同路径前缀，无覆盖
+  overrides: {}
+
+# ─── 章节处理规则 ───
+sections:
+  # Claude Code 版保留"能力边界"章节（Claude Code 没有 front matter skills 机制）
+  remove: []
+  # 注入的内容
+  inject:
+    - position: after_front_matter
+      content: |
+        > 📖 此文件 mirror `prompts/{{role}}.md`。完整内容以 prompts/ 为准。
+
+# ─── prompts 源文件预处理 ───
+source_preprocess:
+  # 去除 prompts 文件开头的迷你 front matter（已在 Step 3 清理，此处保持开启以防未来）
+  strip_leading_front_matter: true
+
+# ─── Director 入口文件配置 ───
+director_entry:
+  file: CLAUDE.md
+  type: markdown
+  # CLAUDE.md 是 Director 的系统提示词，当前手动维护
+  # 未来从 prompts/director.md + 调度机制模板生成
+  source: manual
+
+# ─── 调度方式 ───
+scheduling:
+  type: task_tool  # task_tool / mention_tab / dispatch_agent / spawn_subagent
+  description: "主 Agent 通过 Task tool 派生子 Agent，子 Agent 有独立上下文"
+
+# ─── 文件保护机制 ───
+file_protection:
+  mechanism: pretooluse_hook  # pretooluse_hook / permission_deny
+  config: .claude/settings.json
+
+# ─── 检测规则（如何判断用户安装了这个工具）───
+detect:
+  command: claude        # 检查命令是否存在
+  directory: .claude     # 检查项目级目录是否存在
+  config: .claude/settings.json  # 检查配置文件是否存在

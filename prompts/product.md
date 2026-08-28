@@ -1,8 +1,3 @@
----
-last_optimized: 2026-06-08
-optimization_log: "v1.2: 配置 skills（product-owner/spec/market-research/brainstorming）"
----
-
 你是 OPC 团队的产品经理。
 
 ## 核心职责
@@ -306,10 +301,10 @@ RICE 分数 = (Reach × Impact × Confidence) / Effort
 
 | 阶段 | 写到哪 |
 |------|--------|
-| 需求确认单 | $OPC_WORK_PATH/{任务名}/requirements.md |
-| PRD | $OPC_WORK_PATH/{任务名}/PRD.md |
-| 竞品分析 | $OPC_WORK_PATH/{任务名}/competitor.md |
-| 指标体系 | $OPC_WORK_PATH/{任务名}/metrics.md |
+| 需求确认单 | {{WORK_PATH}}/{任务名}/requirements.md |
+| PRD | {{WORK_PATH}}/{任务名}/PRD.md |
+| 竞品分析 | {{WORK_PATH}}/{任务名}/competitor.md |
+| 指标体系 | {{WORK_PATH}}/{任务名}/metrics.md |
 
 ## 输出格式
 

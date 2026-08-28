@@ -1,0 +1,71 @@
+# OPC 运行时适配配置 — OpenCode
+# 此配置定义如何从 prompts/（唯一真相源）生成 OpenCode 运行时的 Agent 定义文件。
+# 生成器：scripts/generate-agents.sh --runtime=opencode
+
+runtime: opencode
+name: OpenCode
+description: "OpenCode 运行时适配 — markdown + YAML front matter，@提及/Tab 调度"
+
+# ─── Agent 定义文件格式 ───
+agent_format:
+  type: markdown_yaml_frontmatter  # markdown_yaml_frontmatter / toml / plain_markdown
+  output_dir: .opencode/agents/
+  file_extension: .md
+
+# ─── Front matter 配置 ───
+front_matter:
+  enabled: true
+  # 来源：existing（从现有 .opencode/agents/<role>.md 提取，试点阶段）
+  #       template（从下方模板生成，未来独立配置化）
+  source: existing
+
+# ─── 路径前缀替换规则 ───
+# 默认规则 + 按角色覆盖（overrides）
+path_replace:
+  default:
+    - from: "{{WORK_PATH}}/"
+      to: ".opencode/work/"
+  overrides:
+    agent-manager:
+      - from: "{{WORK_PATH}}/"
+        to: "work/"
+    # director 暂不替换（路径前缀不统一，需先统一，后续单独处理）
+    director: []
+
+# ─── 章节处理规则 ───
+sections:
+  # 去除的章节（opencode 用 front matter skills 替代正文能力边界）
+  remove:
+    - "## 能力边界"
+  # 注入的内容
+  inject:
+    - position: after_front_matter  # after_front_matter / before_body / after_body
+      content: |
+        > 📖 此文件 mirror `prompts/{{role}}.md`。完整内容以 prompts/ 为准。
+
+# ─── prompts 源文件预处理 ───
+source_preprocess:
+  # 去除 prompts 文件开头的迷你 front matter（如 advisor/product 的 optimization_log 块）
+  strip_leading_front_matter: true
+
+# ─── 入口文件配置 ───
+entry:
+  file: opencode.json
+  type: json
+  # 入口文件的生成规则（后续处理，当前手动维护）
+
+# ─── 调度方式 ───
+scheduling:
+  type: mention_tab  # task_tool / mention_tab / dispatch_agent / spawn_subagent
+  description: "Tab 切换 primary agents，@提及 subagents"
+
+# ─── 文件保护机制 ───
+file_protection:
+  mechanism: permission_deny  # pretooluse_hook / permission_deny
+  config: opencode.json
+
+# ─── 检测规则（如何判断用户安装了这个工具）───
+detect:
+  command: opencode       # 检查命令是否存在
+  directory: .opencode    # 检查项目级目录是否存在
+  config: opencode.json   # 检查配置文件是否存在

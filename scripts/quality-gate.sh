@@ -297,7 +297,7 @@ for a in "${ACTUAL_PROMPTS[@]}"; do
       in_fm == 1 && /^---$/ { in_fm=0; next }   # front matter 结束
       in_fm == 0 { print }                        # 无 front matter 或已出 front matter：全部输出
     ' "$1" |
-      sed -E "s#\\\$OPC_WORK_PATH#WORK#g; s#\.opencode/work#WORK#g; s#(^|[^A-Za-z])work/#WORK/#g" |
+      sed -E "s#\\\$OPC_WORK_PATH#WORK#g; s#{{WORK_PATH}}#WORK#g; s#\.opencode/work#WORK#g; s#(^|[^A-Za-z])work/#WORK/#g" |
       sed -E "s/\\\$OPC_KNOWLEDGE_PATH/KB/g" |
       sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//' |
       grep -vE '^$'
