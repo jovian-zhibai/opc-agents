@@ -286,13 +286,14 @@ for a in "${ACTUAL_PROMPTS[@]}"; do
 
   # 归一化函数：仅当首行是 --- 才去 front matter；正文中的 --- 分隔线保留
   normalize() {
+    # 双引号内 \\\$ 输出字面 \$，sed 匹配字面 '$OPC_WORK_PATH' 文本（规避 SC2016）
     awk '
       NR == 1 && /^---$/ { in_fm=1; next }
       in_fm == 1 && /^---$/ { in_fm=0; next }   # front matter 结束
       in_fm == 0 { print }                        # 无 front matter 或已出 front matter：全部输出
     ' "$1" |
-      sed -E 's#\$OPC_WORK_PATH#WORK#g; s#\.opencode/work#WORK#g; s#(^|[^A-Za-z])work/#WORK/#g' |
-      sed -E 's/\$OPC_KNOWLEDGE_PATH/KB/g' |
+      sed -E "s#\\\$OPC_WORK_PATH#WORK#g; s#\.opencode/work#WORK#g; s#(^|[^A-Za-z])work/#WORK/#g" |
+      sed -E "s/\\\$OPC_KNOWLEDGE_PATH/KB/g" |
       sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//' |
       grep -vE '^$'
   }

@@ -8,6 +8,8 @@
 
 - README.md — 已知决策表更新：废弃「不引入 CI」三条旧决策，改为记录已落地的 GitHub Actions CI（quality-gate.yml/ci.yml）+ pre-commit 门禁（文档与仓库实际状态脱节，核对时发现）
 - README.md — 项目结构 scripts/ 补 sync-opencode.sh 条目（漏列）
+- scripts/quality-gate.sh — 归一化 sed 正则改双引号转义 \\\$（规避 CI ShellCheck SC2016，行为不变）
+- scripts/sync-opencode.sh — local tmp 声明与赋值拆行（修复 CI ShellCheck SC2155）
 
 ## 2026-08-16
 

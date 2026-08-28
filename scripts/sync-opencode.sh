@@ -39,7 +39,8 @@ extract_section() {
 # 内容经临时文件传入（macOS awk 的 -v 不支持多行字符串）
 replace_section() {
   local file="$1" section="$2" new_content_str="$3"
-  local tmp=$(mktemp)
+  local tmp
+  tmp=$(mktemp)
   printf '%s\n' "$new_content_str" >"$tmp"
   awk -v redfile="$tmp" -v sec="$section" '
     BEGIN { printed_new=0; in_sec=0; while ((getline l < redfile) > 0) new_content = new_content l "\n" }
