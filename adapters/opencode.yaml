@@ -258,6 +258,8 @@ path_replace:
     - from: "{{WORK_PATH}}/"
       to: ".opencode/work/"
   overrides:
+    # agent-manager 管的是跨运行时 agent 定义（评估/优化/新建/删除），产出归项目根 work/，
+    # 而非某个运行时的 .opencode/work/——它的产出是运行时无关的 agent 管理记录
     agent-manager:
       - from: "{{WORK_PATH}}/"
         to: "work/"
