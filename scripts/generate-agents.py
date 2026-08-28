@@ -247,6 +247,23 @@ def generate_role(role: str, adapter_config: dict, write: bool = False) -> dict:
     with open(prompts_file, encoding="utf-8") as f:
         content = f.read()
 
+    # 1.5 从 prompts/ front matter 提取 description（唯一源，不从其他运行时产物捞）
+    prompts_description = ""
+    if content.startswith("---"):
+        lines = content.split("\n")
+        fm_end = None
+        for i in range(1, len(lines)):
+            if lines[i].strip() == "---":
+                fm_end = i
+                break
+        if fm_end:
+            try:
+                fm = yaml.safe_load("\n".join(lines[1:fm_end]))
+                if fm and isinstance(fm, dict):
+                    prompts_description = fm.get("description", "")
+            except Exception:
+                pass
+
     # 2. 预处理：去除开头的迷你 front matter
     source_preprocess = adapter_config.get("source_preprocess", {})
     if source_preprocess.get("strip_leading_front_matter", False):
@@ -280,27 +297,11 @@ def generate_role(role: str, adapter_config: dict, write: bool = False) -> dict:
     # 7.5. TOML 格式转换（Codex 等运行时使用 TOML 而非 markdown + YAML front matter）
     agent_format = adapter_config.get("agent_format", {})
     if agent_format.get("type") == "toml":
-        # 从 OpenCode 版提取 description（作为 fallback）
-        opencode_file = PROJECT_DIR / ".opencode/agents" / f"{role}.md"
-        description = ""
-        if opencode_file.exists():
-            with open(opencode_file, encoding="utf-8") as f:
-                oc_content = f.read()
-            lines = oc_content.split("\n")
-            fm_content = []
-            if lines and lines[0].strip() == "---":
-                for i in range(1, len(lines)):
-                    if lines[i].strip() == "---":
-                        break
-                    fm_content.append(lines[i])
-            try:
-                oc_fm = yaml.safe_load("\n".join(fm_content))
-                description = oc_fm.get("description", "")
-            except Exception:
-                pass
+        # description 从唯一源 prompts/ 的 front matter 提取（prompts_description），
+        # 不再从 .opencode/agents/ 捞，消除跨运行时耦合
+        description = prompts_description
 
         # 生成 TOML 内容（使用 tomli-w 做健壮序列化，自动处理字符串转义）
-        # 不再手写 f-string + 错误的 literal string 转义（body.replace("'''", "\\'\\'\\'")）
         # model / model_reasoning_effort 不硬编码，由用户 ~/.codex/config.toml 全局配置决定
         toml_content = serialize_toml_agent(role, description, content)
         content = toml_content
