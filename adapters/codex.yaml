@@ -1,0 +1,68 @@
+# OPC 运行时适配配置 — OpenAI Codex CLI
+# 此配置定义如何从 prompts/（唯一真相源）生成 Codex CLI 运行时的 Agent 定义文件。
+# 生成器：scripts/generate-agents.py --runtime=codex
+# 注意：Codex 使用 TOML 格式（非 markdown + YAML front matter）
+
+runtime: codex
+name: Codex CLI
+description: "OpenAI Codex CLI 运行时适配 — TOML 格式，spawn subagents 内置支持"
+
+# ─── Agent 定义文件格式 ───
+agent_format:
+  type: toml  # toml / markdown_yaml_frontmatter / plain_markdown
+  output_dir: .codex/agents/
+  file_extension: .toml
+
+# ─── TOML 字段映射 ───
+toml_fields:
+  # 必填字段
+  name: "{{role}}"
+  description: "{{description}}"
+  developer_instructions: "{{body}}"  # 正文内容作为 developer_instructions
+  # 可选字段
+  model: "gpt-4o"  # 默认模型，可按角色覆盖
+  model_reasoning_effort: "medium"
+
+# ─── 路径前缀替换规则 ───
+path_replace:
+  default:
+    - from: "{{WORK_PATH}}/"
+      to: ".codex/work/"
+  overrides: {}
+
+# ─── 章节处理规则 ───
+sections:
+  # Codex 版保留"能力边界"章节
+  remove: []
+  # TOML 格式不需要 mirror 声明行（注入到 developer_instructions 开头）
+  inject:
+    - position: before_body
+      content: |
+        > 📖 此文件 mirror `prompts/{{role}}.md`。完整内容以 prompts/ 为准。
+
+# ─── prompts 源文件预处理 ───
+source_preprocess:
+  strip_leading_front_matter: true
+
+# ─── Director 入口文件配置 ───
+director_entry:
+  file: .codex/config.toml
+  type: toml
+  # Codex 的主配置在 ~/.codex/config.toml，项目级配置当前手动维护
+  source: manual
+
+# ─── 调度方式 ───
+scheduling:
+  type: spawn_subagents
+  description: "Codex 内置 spawn subagents 支持，主 Agent 自动调用子 Agent"
+
+# ─── 文件保护机制 ───
+file_protection:
+  mechanism: approval_policy
+  config: .codex/config.toml
+
+# ─── 检测规则 ───
+detect:
+  command: codex
+  directory: .codex
+  config: .codex/config.toml

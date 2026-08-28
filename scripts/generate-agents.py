@@ -207,6 +207,51 @@ def generate_role(role: str, adapter_config: dict, write: bool = False) -> dict:
     # 7. 去掉末尾多余空行
     content = content.rstrip("\n") + "\n"
 
+    # 7.5. TOML 格式转换（Codex 等运行时使用 TOML 而非 markdown + YAML front matter）
+    agent_format = adapter_config.get("agent_format", {})
+    if agent_format.get("type") == "toml":
+        # 从 OpenCode 版提取 description（作为 fallback）
+        opencode_file = PROJECT_DIR / ".opencode/agents" / f"{role}.md"
+        description = ""
+        if opencode_file.exists():
+            with open(opencode_file, encoding="utf-8") as f:
+                oc_content = f.read()
+            lines = oc_content.split("\n")
+            fm_content = []
+            if lines and lines[0].strip() == "---":
+                for i in range(1, len(lines)):
+                    if lines[i].strip() == "---":
+                        break
+                    fm_content.append(lines[i])
+            try:
+                oc_fm = yaml.safe_load("\n".join(fm_content))
+                description = oc_fm.get("description", "")
+            except Exception:
+                pass
+
+        # 从 adapter 配置读取 TOML 字段
+        toml_fields = adapter_config.get("toml_fields", {})
+        model = toml_fields.get("model", "gpt-4o")
+        reasoning_effort = toml_fields.get("model_reasoning_effort", "medium")
+
+        # 生成 TOML 内容
+        # developer_instructions 用三引号字符串，需要转义内部的三引号
+        body = content.rstrip("\n")
+        body_escaped = body.replace("'''", "\\'\\'\\'")
+
+        toml_content = f'''name = "{role}"
+description = "{description}"
+model = "{model}"
+model_reasoning_effort = "{reasoning_effort}"
+
+developer_instructions = \'\'\'
+{body_escaped}
+\'\'\'
+'''
+        content = toml_content
+        # 修改输出文件扩展名为 .toml
+        output_file = output_dir / f"{role}.toml"
+
     # 8. 输出
     if write:
         output_dir.mkdir(parents=True, exist_ok=True)

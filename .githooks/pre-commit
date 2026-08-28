@@ -16,7 +16,7 @@ if echo "$STAGED" | grep -qE "$GEN_PATTERN"; then
     echo "🔄 检测到 prompts/ 或 adapters/ 改动，自动重新生成所有运行时 Agent 定义..."
 
     # 生成所有已配置的运行时
-    for runtime in opencode claude-code; do
+    for runtime in opencode claude-code pi gemini codex; do
         if [ -f "adapters/${runtime}.yaml" ]; then
             python3 scripts/generate-agents.py --runtime="$runtime" --all --write >/tmp/opc-gen-${runtime}.log 2>&1 || {
                 echo "❌ ${runtime} 生成失败，详情："
@@ -27,7 +27,7 @@ if echo "$STAGED" | grep -qE "$GEN_PATTERN"; then
     done
 
     # 添加生成产物到暂存区
-    git add .opencode/agents/ .claude/agents/ 2>/dev/null || true
+    git add .opencode/agents/ .claude/agents/ .pi/agents/ .gemini/agents/ .codex/agents/ 2>/dev/null || true
 
     echo "✅ 自动生成完成，生成产物已添加到暂存区"
 fi

@@ -1,0 +1,63 @@
+# OPC 运行时适配配置 — Google Gemini CLI
+# 此配置定义如何从 prompts/（唯一真相源）生成 Gemini CLI 运行时的 Agent 定义文件。
+# 生成器：scripts/generate-agents.py --runtime=gemini
+
+runtime: gemini
+name: Gemini CLI
+description: "Gemini CLI 运行时适配 — markdown + YAML front matter，subagents 内置支持"
+
+# ─── Agent 定义文件格式 ───
+agent_format:
+  type: markdown_yaml_frontmatter
+  output_dir: .gemini/agents/
+  file_extension: .md
+
+# ─── Front matter 配置 ───
+front_matter:
+  enabled: true
+  # Gemini CLI subagent 的 front matter 字段：name/description/tools/model
+  # 当前从现有 .gemini/agents/ 提取（如果存在），未来独立配置化
+  source: existing
+
+# ─── 路径前缀替换规则 ───
+path_replace:
+  default:
+    - from: "{{WORK_PATH}}/"
+      to: ".gemini/work/"
+  overrides: {}
+
+# ─── 章节处理规则 ───
+sections:
+  # Gemini CLI 版保留"能力边界"章节
+  remove: []
+  inject:
+    - position: after_front_matter
+      content: |
+        > 📖 此文件 mirror `prompts/{{role}}.md`。完整内容以 prompts/ 为准。
+
+# ─── prompts 源文件预处理 ───
+source_preprocess:
+  strip_leading_front_matter: true
+
+# ─── Director 入口文件配置 ───
+director_entry:
+  file: .gemini/settings.json
+  type: json
+  # Gemini CLI 的配置在 ~/.gemini/settings.json，项目级配置当前手动维护
+  source: manual
+
+# ─── 调度方式 ───
+scheduling:
+  type: subagents
+  description: "Gemini CLI 内置 subagents 支持，主 Agent 自动或手动调用子 Agent"
+
+# ─── 文件保护机制 ───
+file_protection:
+  mechanism: settings_permission
+  config: .gemini/settings.json
+
+# ─── 检测规则 ───
+detect:
+  command: gemini
+  directory: .gemini
+  config: .gemini/settings.json

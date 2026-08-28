@@ -1,0 +1,64 @@
+# OPC 运行时适配配置 — Pi (Mario Zechner)
+# 此配置定义如何从 prompts/（唯一真相源）生成 Pi 运行时的 Agent 定义文件。
+# 生成器：scripts/generate-agents.py --runtime=pi
+# 前置条件：Pi 需安装 subagent 扩展（如 pi-subagent / pi-agent-suite）
+
+runtime: pi
+name: Pi
+description: "Pi 运行时适配 — markdown + YAML front matter，dispatch_agent 工具调度子 Agent"
+
+# ─── Agent 定义文件格式 ───
+agent_format:
+  type: markdown_yaml_frontmatter
+  output_dir: .pi/agents/
+  file_extension: .md
+
+# ─── Front matter 配置 ───
+front_matter:
+  enabled: true
+  # Pi subagent 扩展的 front matter 字段：name/description/tools
+  # 当前从现有 .pi/agents/ 提取（如果存在），未来独立配置化
+  source: existing
+
+# ─── 路径前缀替换规则 ───
+path_replace:
+  default:
+    - from: "{{WORK_PATH}}/"
+      to: ".pi/work/"
+  overrides: {}
+
+# ─── 章节处理规则 ───
+sections:
+  # Pi 版保留"能力边界"章节（Pi 没有 front matter skills 机制）
+  remove: []
+  inject:
+    - position: after_front_matter
+      content: |
+        > 📖 此文件 mirror `prompts/{{role}}.md`。完整内容以 prompts/ 为准。
+
+# ─── prompts 源文件预处理 ───
+source_preprocess:
+  strip_leading_front_matter: true
+
+# ─── Director 入口文件配置 ───
+director_entry:
+  file: .pi/SYSTEM.md
+  type: markdown
+  # Pi 的 Director 入口是 .pi/SYSTEM.md，当前手动维护
+  source: manual
+
+# ─── 调度方式 ───
+scheduling:
+  type: dispatch_agent
+  description: "主 Agent 通过 dispatch_agent 工具调度子 Agent，子 Agent 以 pi --mode json 子进程运行"
+
+# ─── 文件保护机制 ───
+file_protection:
+  mechanism: permission_system
+  config: .pi/config.json
+
+# ─── 检测规则 ───
+detect:
+  command: pi
+  directory: .pi
+  config: .pi/config.json
