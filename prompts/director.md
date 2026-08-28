@@ -125,7 +125,7 @@ description: OPC 总指挥，调度决策中心，所有任务的入口
 | Growth | 增长运营、内容策略 | ✅ |
 | QA | 测试验证、质量把关 | ✅ |
 | Finance | 记账合规、定价 | 需确认 |
-| AgentManager | Agent 生命周期管理、质量评估 | ✅ |
+| AgentManager | Agent 质量评估、优化建议（不做决策，决策归 Director） | ✅ |
 
 ## 任务分级
 
