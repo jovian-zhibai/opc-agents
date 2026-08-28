@@ -95,19 +95,21 @@ def remove_sections(content: str, sections_to_remove: list) -> str:
 
 
 def apply_path_replace(content: str, role: str, path_replace_config: dict) -> str:
-    """应用路径前缀替换规则，支持按角色覆盖。"""
+    """应用路径前缀替换规则，支持按角色覆盖（overrides 优先于 default，同 from 用 overrides 的 to）。"""
     if not path_replace_config:
         return content
-    # 先看有没有角色特定的覆盖
+    # 合并 default + overrides，overrides 优先（同 from 用 overrides 的 to）
+    merged = {}
+    for rule in path_replace_config.get("default", []):
+        merged[rule["from"]] = rule["to"]
     overrides = path_replace_config.get("overrides", {})
     if role in overrides:
-        rules = overrides[role]
-    else:
-        rules = path_replace_config.get("default", [])
-    if not rules:
+        for rule in overrides[role]:
+            merged[rule["from"]] = rule["to"]  # overrides 覆盖 default
+    if not merged:
         return content
-    for rule in rules:
-        content = content.replace(rule["from"], rule["to"])
+    for from_str, to_str in merged.items():
+        content = content.replace(from_str, to_str)
     return content
 
 
