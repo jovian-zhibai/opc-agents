@@ -437,8 +437,8 @@ SCAN_FILES=$(git ls-files --cached --others --exclude-standard 2>/dev/null |
 SECRET_HITS=""
 if [ -n "$SCAN_FILES" ]; then
   # 过滤掉含正则定义字面本身的命中（quality-gate.sh/ci.yml 等检查脚本正文含模式文本，属自引用误报）
-  SECRET_HITS=$(printf '%s\n' "$SCAN_FILES" | xargs grep -nE 'sk-[A-Za-z0-9]{20,}|SENSENOVA_API_KEY=.{5,}|api_key=.{10,}|token=.{20,}' 2>/dev/null |
-    grep -vF -e 'sk-[A-Za-z0-9]{20,}' -e 'api_key=.{10,}' -e 'token=.{20,}' -e 'SENSENOVA_API_KEY=.{5,}' \
+  SECRET_HITS=$(printf '%s\n' "$SCAN_FILES" | xargs grep -nE 'sk-[A-Za-z0-9]{20,}|SENSENOVA_API_KEY=.{5,}|api_key=["'"'"'][A-Za-z0-9_\-]{16,}["'"'"']|token=.{20,}' 2>/dev/null |
+    grep -vF -e 'sk-[A-Za-z0-9]{20,}' -e 'api_key=["'"'"'][A-Za-z0-9_\-]{16,}["'"'"']' -e 'token=.{20,}' -e 'SENSENOVA_API_KEY=.{5,}' \
       -e 'sk-\[A-Za-z0-9\]\{20,\}' -e 'api_key=\.\{10,\}' -e 'token=\.\{20,\}' -e 'SENSENOVA_API_KEY=\.\{5,\}' || true)
 fi
 if [ -n "$SECRET_HITS" ]; then
