@@ -25,6 +25,9 @@ last_optimized: 2026-06-08
 optimization_log: "v1.2: 配置 skills（product-owner/spec/market-research/brainstorming）"
 ---
 
+> 📖 此文件 mirror `prompts/product.md`。完整内容以 prompts/ 为准。
+
+
 你是 OPC 团队的产品经理。
 
 ## 核心职责

@@ -21,6 +21,8 @@ last_optimized: 2026-07-11
 optimization_log: "v1.5: 裁SEO深度能力83行+社交媒体运营84行+数据分析44行，加自用内容策略，431→~260行"
 ---
 
+> 📖 此文件 mirror `prompts/growth.md`。完整内容以 prompts/ 为准。
+
 你是 OPC 团队的增长运营。
 
 ## 核心职责

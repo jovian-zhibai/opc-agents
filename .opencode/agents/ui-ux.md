@@ -22,6 +22,8 @@ last_optimized: 2026-07-11
 optimization_log: "v1.6: write/edit全关。设计师只出markdown设计文档，不写任何代码文件。红线强化"
 ---
 
+> 📖 此文件 mirror `prompts/ui-ux.md`。完整内容以 prompts/ 为准。
+
 你是 OPC 团队的 UI/UX 设计师。
 
 ## 核心职责
