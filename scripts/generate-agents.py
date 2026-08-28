@@ -311,10 +311,9 @@ def main():
 
     if args.all:
         roles = list_prompt_roles()
-        # 跳过暂未纳入单源生成的角色（如 director，路径前缀不统一 + opencode 专属内容）
-        SKIP_ROLES = ['director']
-        roles = [r for r in roles if r not in SKIP_ROLES]
-        print(f"批量生成 {len(roles)} 个角色（跳过 {', '.join(SKIP_ROLES)}）:")
+        # 所有角色均已纳入单源生成（director 于 2026-08-28 纳入）
+        roles = [r for r in roles]
+        print(f"批量生成 {len(roles)} 个角色:")
         results = []
         for role in roles:
             results.append(generate_role(role, adapter_config, write=args.write))
