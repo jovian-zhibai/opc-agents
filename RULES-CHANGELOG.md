@@ -4,6 +4,11 @@
 
 格式：`{日期} {文件} — {变更}（{原因}）`
 
+## 2026-08-28
+
+- README.md — 已知决策表更新：废弃「不引入 CI」三条旧决策，改为记录已落地的 GitHub Actions CI（quality-gate.yml/ci.yml）+ pre-commit 门禁（文档与仓库实际状态脱节，核对时发现）
+- README.md — 项目结构 scripts/ 补 sync-opencode.sh 条目（漏列）
+
 ## 2026-08-16
 
 - CLAUDE.md — 瘦身 357→303 行（任务分级/流水线/Advisor 介入/中断恢复/汇报格式/成本意识压缩为一行+指向 director.md）

@@ -120,6 +120,7 @@ prompts/                   共享 Agent 提示词（10 个文件，与 .opencode
 scripts/                   自动化脚本
 ├── auto-check.sh          每日自检
 ├── quality-gate.sh        一致性检查（跑这个确认两版未漂移）
+├── sync-opencode.sh       双环境核心章节单向同步（prompts/ → .opencode/agents/）
 └── state-manager.py       状态管理（含中断恢复）
 work/                      运行时产出目录
 ```
@@ -164,9 +165,9 @@ mkdir -p $OPC_WORK_PATH $OPC_KNOWLEDGE_PATH
 
 | 决策 | 理由 | 日期 |
 | ------ | ------ | ------ |
-| 不引入 CI 门禁（quality-gate 不进 PR pipeline） | 一人公司无 PR 流程，本地跑脚本即可 | 2026-07-04 |
-| 不引入 OpenCode 运行时 CI | 当前主力运行时为 Claude Code，无 CI 环境 | 2026-07-04 |
-| 不做 P2-4 quality-gate 进 CI | 同上，本地 quality-gate.sh 手动执行已足够 | 2026-07-04 |
+| ~~不引入 CI 门禁~~（已废弃） | 原以为一人公司无 PR 流程、本地跑脚本即可；后规则文件多次漂移，改为 CI + pre-commit 双保险 | 2026-07-04 定，2026-08 废弃 |
+| 引入 CI 门禁（GitHub Actions） | `.github/workflows/quality-gate.yml`（push/PR 到 main 自动跑 quality-gate.sh）+ `.github/workflows/ci.yml`（prompts 完整性、ShellCheck、secret 扫描） | 2026-08 |
+| 引入 pre-commit 门禁 | `.git/hooks/pre-commit`：规则文件（CLAUDE.md/prompts/.opencode/routing.yaml/scripts）改动时强制跑 quality-gate，未通过即拦截提交 | 2026-08 |
 
 ### 双运行时文件保护（预期设计，勿“修复”）
 
