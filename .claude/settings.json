@@ -11,12 +11,22 @@
         ]
       }
     ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/lessons-prompt.py --mode session_start"
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/lessons-prompt.py"
+            "command": "python3 .claude/hooks/lessons-prompt.py --mode user_prompt"
           }
         ]
       }
