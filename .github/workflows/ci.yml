@@ -43,6 +43,15 @@ jobs:
           pip3 install --quiet pytest pyyaml
           python3 -m pytest tests/ -q
 
+      - name: Run skill shell self-tests
+        run: |
+          # 遍历 .opencode/skills/ 下各 skill 的 test.sh（若有），逐个执行
+          for t in .opencode/skills/*/test.sh; do
+            [ -f "$t" ] || continue
+            echo "▶ 运行 $t"
+            bash "$t"
+          done
+
       - name: Check no hardcoded secrets
         run: |
           # 扫描整个仓库『会被提交』的文件集（git tracked + 未忽略的未跟踪），

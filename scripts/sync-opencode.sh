@@ -27,12 +27,13 @@ DRY_RUN=false
 CORE_SECTIONS=("## 红线")
 
 # 从文件中提取指定章节（遇下一个 ## 标题即停），去空行
+# 返回空串表示章节不存在（grep 无匹配会返回非零，加 || true 避免 set -e 退出）
 extract_section() {
   local section="$1"
   awk -v sec="$section" '
     index($0, sec) == 1 { in_sec=1; print; next }
     in_sec == 1 { if (/^## /) exit; print }
-  ' "$2" | grep -vE '^$'
+  ' "$2" | grep -vE '^$' || true
 }
 
 # 用新章节内容替换目标文件的指定章节（遇下一个 ## 标题即结束该章节）
