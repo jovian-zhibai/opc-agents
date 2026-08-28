@@ -324,8 +324,9 @@ def generate_role(role: str, adapter_config: dict, write: bool = False) -> dict:
         print(f"  ✅ {role}: 已写入 {output_file.relative_to(PROJECT_DIR)}")
         return {"role": role, "written": True}
     else:
-        # dry-run：写到 /tmp，统计差异
-        tmp_file = Path(f"/tmp/gen-{runtime}-{role}.md")
+        # dry-run：写到 /tmp，统计差异（临时文件后缀按运行时真实扩展名，codex 用 .toml）
+        file_ext = agent_format.get('file_extension', '.md')
+        tmp_file = Path(f"/tmp/gen-{runtime}-{role}{file_ext}")
         tmp_file.parent.mkdir(parents=True, exist_ok=True)
         with open(tmp_file, "w", encoding="utf-8") as f:
             f.write(content)
