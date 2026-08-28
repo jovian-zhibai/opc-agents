@@ -190,7 +190,10 @@ fallback: "director-intent"
 #   OpenCode 本地未安装属预期，缺失时按 director 的『Skill 缺失降级』规则走降级路径：
 #   - anysearch：通用搜索（全局已安装 ✓）
 #   - multi-search-engine：备选搜索（全局也未安装，缺失时降级 webfetch/联网搜索）
-# 其余 skill 均应在 .opencode/skills/ 下存在；pdf/docx/xlsx/pptx 为 Claude Code 专属，OC 下走降级。
+# .opencode/skills/ 下只放 5 个 OPC 自用编排 skill（daily-check / knowledge-search / lessons-index / meeting-minutes / skill-index）。
+# 本表其余 skill（react-patterns、api-design、market-research 等）均为社区/用户环境技能，运行时安装、不入库；
+# 本地缺失属预期，按『Skill 缺失降级』规则处理（skill-index 先探测环境实际可用者，探测不到再降级）。
+# pdf/docx/xlsx/pptx 为 Claude Code 专属，OC 下走降级。
 # 高频 skill 按意图分组。命中后加载给 Agent 使用。
 # 未命中的走 skill-index 检索（search.sh 实时扫描全部 skill）。
 skill_routes:
