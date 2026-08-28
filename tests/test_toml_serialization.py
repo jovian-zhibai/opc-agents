@@ -101,8 +101,6 @@ def test_serialize_toml_roundtrip_adversarial(name, body):
     toml_str = serialize_toml_agent(
         role="test-agent",
         description="测试描述",
-        model="gpt-4o",
-        reasoning_effort="medium",
         developer_instructions=body,
     )
 
@@ -112,8 +110,9 @@ def test_serialize_toml_roundtrip_adversarial(name, body):
     # 字段正确
     assert parsed["name"] == "test-agent"
     assert parsed["description"] == "测试描述"
-    assert parsed["model"] == "gpt-4o"
-    assert parsed["model_reasoning_effort"] == "medium"
+    # model / model_reasoning_effort 不硬编码，由用户 ~/.codex/config.toml 全局配置决定
+    assert "model" not in parsed, "生成的 TOML 不应硬编码 model 字段"
+    assert "model_reasoning_effort" not in parsed, "生成的 TOML 不应硬编码 model_reasoning_effort 字段"
 
     # 关键断言：developer_instructions 与原文逐字一致（rstrip 换行是生成器的约定）
     expected = body.rstrip("\n")

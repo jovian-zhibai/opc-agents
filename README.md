@@ -168,6 +168,7 @@ mkdir -p $OPC_WORK_PATH $OPC_KNOWLEDGE_PATH
 | ~~不引入 CI 门禁~~（已废弃） | 原以为一人公司无 PR 流程、本地跑脚本即可；后规则文件多次漂移，改为 CI + pre-commit 双保险 | 2026-07-04 定，2026-08 废弃 |
 | 引入 CI 门禁（GitHub Actions） | `.github/workflows/quality-gate.yml`（push/PR 到 main 自动跑 quality-gate.sh）+ `.github/workflows/ci.yml`（prompts 完整性、ShellCheck、secret 扫描） | 2026-08 |
 | 引入 pre-commit 门禁 | `.git/hooks/pre-commit`：规则文件（CLAUDE.md/prompts/.opencode/routing.yaml/scripts）改动时强制跑 quality-gate，未通过即拦截提交 | 2026-08 |
+| Codex agent 不硬编码 model | `.codex/agents/*.toml` 只含 name/description/developer_instructions，model 由用户自己的 `~/.codex/config.toml` 全局配置决定（ConfigToml.model 是 Option，缺省回落全局）。硬编码会把私有模型名/本地代理语义泄进公开仓库，且模型属环境关切不该焊进入库产物 | 2026-08 |
 
 ### 双运行时文件保护（预期设计，勿“修复”）
 

@@ -19,6 +19,7 @@
 - scripts/generate-agents.py — TOML 序列化重构：废弃手写 f-string + 错误 literal string 转义（body.replace("'''", "\\'\\'\\'")，literal string 不支持转义，会静默篡改含 ''' 的正文），改用 tomli-w 库做健壮序列化；抽 serialize_toml_agent() 独立函数便于单元测试
 - 依赖 — 新增 tomli-w（TOML 序列化库，轻量只写）；ci.yml 三处 pip install 同步添加
 - tests/test_toml_serialization.py — 新增 12 用例：11 个对抗性正文 round-trip（含 '''/\\/\"/end'''/空正文/Unicode 等，断言 tomllib 解析后与原文逐字一致）+ 全量 .codex/agents/*.toml 可解析校验
+- adapters/codex.yaml + scripts/generate-agents.py — 删除 codex agent 级 model / model_reasoning_effort 硬编码（原写死 gpt-4o / medium）。模型属环境关切，由用户自己的 ~/.codex/config.toml 全局配置决定（ConfigToml.model 是 Option，缺省回落全局）；硬编码会把私有模型名/本地代理语义泄进公开仓库。经 codex 官方源码核查：.codex/agents/*.toml 格式正确（name/description/developer_instructions 必需，model 可选），developer_instructions 对 standalone 文件是必需字段缺了会报错被忽略。生成的 10 个 .toml 仅移除这两行，其余不变
 
 ## 2026-08-16
 

@@ -1,7 +1,5 @@
 name = "growth"
 description = "增长运营，市场调研、内容策略、用户增长、竞品分析、增长漏斗优化"
-model = "gpt-4o"
-model_reasoning_effort = "medium"
 developer_instructions = """
 > 📖 此文件 mirror `prompts/growth.md`。完整内容以 prompts/ 为准。
 

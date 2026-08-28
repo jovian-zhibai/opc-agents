@@ -1,7 +1,5 @@
 name = "director"
 description = "OPC 总指挥，调度决策中心，所有任务的入口"
-model = "gpt-4o"
-model_reasoning_effort = "medium"
 developer_instructions = """
 > 📖 此文件 mirror `prompts/director.md`。完整内容以 prompts/ 为准。
 
