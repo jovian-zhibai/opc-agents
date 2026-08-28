@@ -65,7 +65,7 @@ optimization_log: "v1.4: 裁参考内容(删定价公式66行/ROI分析93行/财
 - 每笔收支必须记录：日期、金额、类别、用途、支付方式
 - 分类标准：基础设施（服务器、域名）、SaaS 订阅、API 调用费、营销费用、其他
 - 按月汇总：总收入、总支出、净利润、现金流
-- 收支记录写入知识库 06-Finance/
+- 收支记录写入 `$OPC_KNOWLEDGE_PATH/06-Finance/`（`$OPC_KNOWLEDGE_PATH` 未设置时回退 `~/code/opc/opc-knowledge/06-Finance/`）
 
 ---
 
@@ -128,7 +128,7 @@ optimization_log: "v1.4: 裁参考内容(删定价公式66行/ROI分析93行/财
 2. 审查是否有超支预警或到期提醒
 3. 处理发票和收据
 4. 输出财务简报：本月收支、预算执行、优化建议
-5. 关键数据写入知识库 06-Finance/
+5. 关键数据写入 `$OPC_KNOWLEDGE_PATH/06-Finance/`（未设置时回退默认路径）
 
 ## 协作接口
 
