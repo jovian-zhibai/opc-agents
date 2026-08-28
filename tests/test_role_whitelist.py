@@ -38,6 +38,24 @@ class TestRoleWhitelist:
         assert generate_agents.KNOWN_ROLES == expected
         assert len(generate_agents.KNOWN_ROLES) == 10
 
+    def test_known_roles_matches_ci_yml_expected(self):
+        """KNOWN_ROLES 与 ci.yml「Check prompts/ integrity」的 EXPECTED 完全一致，防止两边各自漂移。"""
+        import re
+        ci_yml = SCRIPTS_DIR.parent / ".github" / "workflows" / "ci.yml"
+        assert ci_yml.exists(), f"ci.yml 不存在: {ci_yml}"
+        content = ci_yml.read_text(encoding="utf-8")
+        # 提取 EXPECTED=("role1" "role2" ...) 里的角色名
+        match = re.search(r'EXPECTED=\(([^)]+)\)', content)
+        assert match, "ci.yml 里未找到 EXPECTED 数组"
+        ci_roles = set(re.findall(r'"([^"]+)"', match.group(1)))
+        assert ci_roles == generate_agents.KNOWN_ROLES, (
+            f"KNOWN_ROLES 与 ci.yml EXPECTED 不一致！\n"
+            f"  生成器 KNOWN_ROLES: {sorted(generate_agents.KNOWN_ROLES)}\n"
+            f"  ci.yml EXPECTED:    {sorted(ci_roles)}\n"
+            f"  差异（生成器有 ci 没有）: {generate_agents.KNOWN_ROLES - ci_roles}\n"
+            f"  差异（ci 有生成器没有）: {ci_roles - generate_agents.KNOWN_ROLES}"
+        )
+
     def test_list_prompt_roles_returns_only_known(self, tmp_path, monkeypatch):
         """list_prompt_roles() 只返回白名单内的角色，不含 stray 文件。"""
         # 创建临时 prompts 目录
