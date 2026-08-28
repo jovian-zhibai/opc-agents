@@ -41,14 +41,14 @@ jobs:
 
       - name: Run unit tests (pytest)
         run: |
-          pip3 install --quiet pytest pyyaml
+          pip3 install --quiet pytest pyyaml tomli-w
           python3 -m pytest tests/ -q
 
       - name: Verify generated agents are in sync with prompts/
         run: |
           # 从 prompts/ 重新生成所有运行时的 Agent 定义，检查是否和仓库中的一致
           # 如果不一致，说明用户改了 prompts/ 但忘了跑生成器（或 pre-commit hook 未生效）
-          pip3 install --quiet pyyaml
+          pip3 install --quiet pyyaml tomli-w
           for runtime in opencode claude-code pi gemini codex; do
             if [ -f "adapters/${runtime}.yaml" ]; then
               echo "▶ 生成 ${runtime}..."
@@ -71,7 +71,7 @@ jobs:
         run: |
           # 从 prompts/director.md 红线节重新生成 CLAUDE.md 标记块，检查是否和仓库中一致
           # 如果不一致，说明改了 prompts/ 红线但忘了同步 CLAUDE.md 标记块
-          pip3 install --quiet pyyaml
+          pip3 install --quiet pyyaml tomli-w
           python3 scripts/generate-agents.py --entry-block CLAUDE.md --section 红线 --write
           if ! git diff --quiet -- CLAUDE.md; then
             echo "❌ CLAUDE.md 标记块与 prompts/director.md 红线节不同步！"

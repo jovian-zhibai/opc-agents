@@ -210,6 +210,23 @@ def inject_managed_block(entry_file: Path, block_content: str, block_type: str =
         return {"diff_count": len(diff_lines), "tmp_file": str(tmp_file)}
 
 
+def serialize_toml_agent(role: str, description: str, model: str, reasoning_effort: str, developer_instructions: str) -> str:
+    """将 Agent 定义序列化为 TOML 字符串。使用 tomli-w 做健壮序列化，自动处理字符串转义。
+
+    这是独立函数，便于单元测试喂对抗性正文（含 '''、\\、\"、end''' 等），
+    断言 round-trip 解析后与原文逐字一致。
+    """
+    import tomli_w
+    toml_data = {
+        "name": role,
+        "description": description,
+        "model": model,
+        "model_reasoning_effort": reasoning_effort,
+        "developer_instructions": developer_instructions.rstrip("\n"),
+    }
+    return tomli_w.dumps(toml_data)
+
+
 def generate_role(role: str, adapter_config: dict, write: bool = False) -> dict:
     """生成单个角色的 Agent 定义文件。返回差异统计。"""
     runtime = adapter_config["runtime"]
@@ -283,20 +300,9 @@ def generate_role(role: str, adapter_config: dict, write: bool = False) -> dict:
         model = toml_fields.get("model", "gpt-4o")
         reasoning_effort = toml_fields.get("model_reasoning_effort", "medium")
 
-        # 生成 TOML 内容
-        # developer_instructions 用三引号字符串，需要转义内部的三引号
-        body = content.rstrip("\n")
-        body_escaped = body.replace("'''", "\\'\\'\\'")
-
-        toml_content = f'''name = "{role}"
-description = "{description}"
-model = "{model}"
-model_reasoning_effort = "{reasoning_effort}"
-
-developer_instructions = \'\'\'
-{body_escaped}
-\'\'\'
-'''
+        # 生成 TOML 内容（使用 tomli-w 做健壮序列化，自动处理字符串转义）
+        # 不再手写 f-string + 错误的 literal string 转义（body.replace("'''", "\\'\\'\\'")）
+        toml_content = serialize_toml_agent(role, description, model, reasoning_effort, content)
         content = toml_content
         # 修改输出文件扩展名为 .toml
         output_file = output_dir / f"{role}.toml"

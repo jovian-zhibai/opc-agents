@@ -16,6 +16,9 @@
 - .github/workflows/ci.yml — 新增 Run unit tests 步骤（pip install pytest pyyaml + pytest tests/）
 - .gitignore — 排除 tests/__pycache__ 与 .pytest_cache
 - scripts/gen-opencode-agent.sh — 删除：已被 scripts/generate-agents.py --runtime=opencode 完全替代（经逐行 diff 确认等价，且旧脚本因不认识 {{WORK_PATH}} 占位符已产出坏文件），且触发 ShellCheck SC2016 导致 CI 失败
+- scripts/generate-agents.py — TOML 序列化重构：废弃手写 f-string + 错误 literal string 转义（body.replace("'''", "\\'\\'\\'")，literal string 不支持转义，会静默篡改含 ''' 的正文），改用 tomli-w 库做健壮序列化；抽 serialize_toml_agent() 独立函数便于单元测试
+- 依赖 — 新增 tomli-w（TOML 序列化库，轻量只写）；ci.yml 三处 pip install 同步添加
+- tests/test_toml_serialization.py — 新增 12 用例：11 个对抗性正文 round-trip（含 '''/\\/\"/end'''/空正文/Unicode 等，断言 tomllib 解析后与原文逐字一致）+ 全量 .codex/agents/*.toml 可解析校验
 
 ## 2026-08-16
 
