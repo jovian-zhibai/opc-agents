@@ -132,6 +132,38 @@ OpenCode 的 agent front matter 声明了若干 skill（如 anysearch、multi-se
 
 需求澄清(Product) → 设计(UI-UX) → 技术方案(Dev+Advisor) → 实现(Dev) → 验证(QA) → 安全(Guardian) → 归档(Director)
 
+## 五运行时会话启动自动检查
+
+五个运行时统一实现"会话启动时自动跑一次检查"，通过各运行时的原生 hook/插件机制触发，不依赖模型自愿遵守。
+
+### 统一行为规格
+
+会话启动时注入以下内容（克制原则，只加高频高危）：
+1. **中断恢复**：检查未完成任务（`scripts/state.json`），提醒是否继续
+2. **会话引导**：读 `work/session-notes.md` 最后 20 行，了解上次干到哪
+3. **高危流程提醒**：涉及钱/用户可见变化需问创始人、QA 3 次失败上报
+4. **任务前查教训**（仅用户提交 prompt 时）：提取关键词检索 lessons-index
+
+### 共享核心
+
+`scripts/opc_session_hook.py` 是五运行时通用的核心逻辑，各运行时的 hook 脚本都是薄封装，调用这个核心后按各运行时的格式输出。
+
+两种使用方式：
+- 命令行：`echo '{"mode": "session_start"}' | python3 scripts/opc_session_hook.py`
+- 模块导入：`from opc_session_hook import generate_context`
+
+### 各运行时实现
+
+| 运行时 | 机制 | 事件 | 配置位置 | hook 脚本 | 类型 |
+|---|---|---|---|---|---|
+| **Claude Code** | 原生 hooks | SessionStart + UserPromptSubmit | `.claude/settings.json` | `.claude/hooks/lessons-prompt.py` | (a) 真 hook |
+| **OpenCode** | 插件系统 | session.created | `.opencode/plugins/opc-session-hook.ts` | 同左（TypeScript 插件） | (b) 插件间接实现 |
+| **Pi** | extension API | before_agent_start | 模板 `.pi/hooks/opc-session-hook.ts.template` | 复制到 `~/.pi/agent/extensions/` | (a) 真 hook |
+| **Gemini CLI** | 原生 hooks | SessionStart | `.gemini/settings.json` | `.gemini/hooks/session-start.py` | (a) 真 hook |
+| **Codex CLI** | 原生 hooks | SessionStart | `.codex/hooks.json` | `.codex/hooks/session-start.py` | (a) 真 hook |
+
+> **降级原则**：任何 hook 执行失败都静默跳过，不影响正常流程。共享核心的任何一步（读文件/检索/解析）失败也静默跳过。
+
 ## 项目结构
 
 ```
@@ -158,17 +190,27 @@ adapters/                  运行时适配配置（声明式转换规则）
 └── codex.yaml
 .opencode/                 OpenCode 运行时产物
 ├── agents/                10 个 Agent 定义（含 front matter，生成器生成）
+├── plugins/               OpenCode 插件（opc-session-hook.ts 会话启动自动检查）
 └── skills/                通用 Skill 库
 .claude/                   Claude Code 运行时产物
 ├── agents/                10 个 Agent 定义（生成器生成）
-├── hooks/                 Claude Code hooks（如 lessons-prompt.py）
-└── settings.json          PreToolUse hook 配置（受保护文件硬拦截）
-.pi/                       Pi 运行时产物（生成器生成）
-.gemini/                   Gemini 运行时产物（生成器生成）
-.codex/                    Codex 运行时产物（生成器生成，TOML 格式）
+├── hooks/                 Claude Code hooks（lessons-prompt.py 会话启动自动检查 + protect-prompts.py 受保护文件硬拦截）
+└── settings.json          hook 配置（SessionStart/UserPromptSubmit/PreToolUse）
+.pi/                       Pi 运行时产物
+├── agents/                10 个 Agent 定义（生成器生成）
+└── hooks/                 Pi extension 模板（opc-session-hook.ts.template，复制到 ~/.pi/agent/extensions/）
+.gemini/                   Gemini 运行时产物
+├── agents/                10 个 Agent 定义（生成器生成）
+├── hooks/                 Gemini hooks（session-start.py 会话启动自动检查）
+└── settings.json          hook 配置（SessionStart）
+.codex/                    Codex 运行时产物
+├── agents/                10 个 Agent 定义（生成器生成，TOML 格式）
+├── hooks/                 Codex hooks（session-start.py 会话启动自动检查）
+└── hooks.json             hook 配置（SessionStart）
 scripts/                   自动化脚本
 ├── auto-check.sh          每日运维自检（知识库 Inbox、活跃任务、Git 状态、过期知识）
 ├── generate-agents.py     多运行时 Agent 生成器（prompts/ + adapter → 各运行时产物）
+├── opc_session_hook.py    五运行时会话启动自动检查共享核心（中断恢复+会话引导+流程提醒+教训检索）
 ├── quality-gate.sh        一致性检查（跑这个确认生成产物与 prompts/ 未漂移）
 └── state-manager.py       状态管理（含中断恢复）
 tests/                     pytest 测试

@@ -6,6 +6,8 @@
 
 ## 2026-08-28
 
+- scripts/opc_session_hook.py + 五运行时 hook — P2 五运行时会话启动自动检查统一。新增共享核心 scripts/opc_session_hook.py（中断恢复+会话引导+高危流程提醒+任务前查教训，两种模式 session_start/user_prompt）；各运行时薄封装调用共享核心：Claude Code（.claude/settings.json 新增 SessionStart + UserPromptSubmit，lessons-prompt.py 重构）、OpenCode（.opencode/plugins/opc-session-hook.ts 订阅 session.created）、Pi（.pi/hooks/opc-session-hook.ts.template 模板，before_agent_start）、Gemini（.gemini/settings.json + hooks/session-start.py，v0.26.0+ 原生 SessionStart）、Codex（.codex/hooks.json + hooks/session-start.py，hooks Stable 默认启用）。统一行为规格，降级原则：任何失败静默跳过不影响正常流程
+- docs/director-single-source-design.md — 删除 P1/P2 内部设计蓝图，有价值内容（hook 机制设计、五运行时核实结果）已迁入 README「五运行时会话启动自动检查」章节，P1 Director 单源化和 P2 hook 统一化均已完成落地，蓝图不再需要
 - README.md — 已知决策表更新：废弃「不引入 CI」三条旧决策，改为记录已落地的 GitHub Actions CI（quality-gate.yml/ci.yml）+ pre-commit 门禁（文档与仓库实际状态脱节，核对时发现）
 - README.md — 项目结构 scripts/ 补 sync-opencode.sh 条目（漏列）
 - scripts/quality-gate.sh — 归一化 sed 正则改双引号转义 \\\$（规避 CI ShellCheck SC2016，行为不变）
