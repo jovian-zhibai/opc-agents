@@ -30,6 +30,13 @@ PROJECT_DIR = SCRIPT_DIR.parent
 PROMPTS_DIR = PROJECT_DIR / "prompts"
 ADAPTERS_DIR = PROJECT_DIR / "adapters"
 
+# 固定角色白名单——与 ci.yml「Check prompts/ integrity」的 EXPECTED 同源。
+# 非白名单 .md 文件（如 README、draft、_stray 等）跳过，防止 stray 文件生成垃圾 agent。
+KNOWN_ROLES = frozenset([
+    "advisor", "agent-manager", "dev", "director", "finance",
+    "growth", "guardian", "product", "qa", "ui-ux",
+])
+
 # ─── 工具函数 ───
 
 def load_adapter(runtime: str) -> dict:
@@ -51,10 +58,15 @@ def list_available_runtimes() -> list:
 
 
 def list_prompt_roles() -> list:
-    """列出 prompts/ 目录下的所有角色。"""
+    """列出 prompts/ 目录下的所有已知角色（白名单过滤，stray 文件跳过并告警）。"""
     if not PROMPTS_DIR.exists():
         return []
-    return sorted([p.stem for p in PROMPTS_DIR.glob("*.md")])
+    all_md = sorted([p.stem for p in PROMPTS_DIR.glob("*.md")])
+    known = [r for r in all_md if r in KNOWN_ROLES]
+    stray = [r for r in all_md if r not in KNOWN_ROLES]
+    if stray:
+        print(f"⚠️  跳过非白名单文件（不生成 agent）：{', '.join(stray)}", file=sys.stderr)
+    return known
 
 
 def strip_leading_front_matter(content: str) -> str:
