@@ -243,7 +243,7 @@ Bug 修复流水线：创始人报告问题 → QA 排查确认 → Dev 修复 �
 
 **2. 反馈信号**（阶段三激活）：若创始人明确接受或打回任务，按 [../../feedback.schema.json](../../feedback.schema.json) 格式记录一条到 `.pi/work/agent-metrics/{agent-name}.jsonl`。打回（user_reject）是最强负反馈，几条就有意义。
 
-每次新会话启动时，调 Dev 读一下最后 20 行 session-notes.md，告诉团队上次踩过的坑。同一个坑不踩第二次。
+每次新会话启动时，调 Dev 读一下最后 20 行 .pi/work/session-notes.md，告诉团队上次踩过的坑。同一个坑不踩第二次。
 
 ## 记一条
 
