@@ -113,23 +113,6 @@ def apply_path_replace(content: str, role: str, path_replace_config: dict) -> st
     return content
 
 
-def extract_front_matter(file_path: Path) -> str:
-    """从现有文件提取 YAML front matter（第一个 --- 到第二个 --- 之间的内容，包含 ---）。"""
-    if not file_path.exists():
-        return ""
-    with open(file_path, encoding="utf-8") as f:
-        content = f.read()
-    lines = content.split("\n")
-    if not lines or lines[0].strip() != "---":
-        return ""
-    fm_lines = ["---"]
-    for i in range(1, len(lines)):
-        fm_lines.append(lines[i])
-        if lines[i].strip() == "---":
-            break
-    return "\n".join(fm_lines)
-
-
 def inject_content(content: str, inject_configs: list, role: str) -> str:
     """在指定位置注入内容。"""
     if not inject_configs:
@@ -281,14 +264,7 @@ def generate_role(role: str, adapter_config: dict, write: bool = False) -> dict:
     # 5. 处理 front matter（先拼接 front matter，再注入内容，确保 after_front_matter 位置正确）
     fm_config = adapter_config.get("front_matter", {})
     if fm_config.get("enabled", False):
-        if fm_config.get("source") == "existing":
-            # 从现有输出文件提取 front matter（试点阶段，未来淘汰）
-            existing_fm = extract_front_matter(output_file)
-            if existing_fm:
-                # 去掉 content 开头可能存在的 front matter（prompts 版没有，但保险起见）
-                content = strip_leading_front_matter(content)
-                content = f"{existing_fm}\n\n{content}"
-        elif fm_config.get("source") == "template":
+        if fm_config.get("source") == "template":
             # 从 adapter 配置生成 front matter（单源模式，删了产物也能复原）
             template_roles = fm_config.get("template", {}).get("roles", {})
             role_template = template_roles.get(role)
