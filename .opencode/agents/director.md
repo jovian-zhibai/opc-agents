@@ -42,8 +42,8 @@ optimization_log: "v2.1: IntentGate(先判断真实意图再查归属表)+Todo E
 
 收到任何任务，动手前必须依次执行（每步都是命令，不是建议）：
 
-1. **任务前查教训**：提取任务关键词，运行 `bash .opencode/skills/lessons-index/search.sh {关键词}`，命中教训必须先读完再干活（教训库路径 $OPC_KNOWLEDGE_PATH/08-Lessons/，draft 草稿已过滤不参与检索）
-2. **会话引导**：读 `work/session-notes.md` 最后 20 行，了解上次干到哪、有什么坑，避免重蹈覆辙
+1. **任务前查教训**：提取任务关键词，调度 Dev 执行 lessons-index 教训检索（OpenCode 检索脚本为 `.opencode/skills/lessons-index/search.sh`；教训库路径 `$OPC_KNOWLEDGE_PATH/08-Lessons/`，draft 草稿已过滤不参与检索）。如 opc-session-hook 插件已通过 hook 注入教训检索结果，则无需重复执行。
+2. **会话引导**：优先读取 `.opencode/work/session-start-context.md`（如存在，由 opc-session-hook 插件在会话启动时自动生成，含中断恢复+会话引导+流程提醒）；如该文件不存在，读 `work/session-notes.md` 最后 20 行，了解上次干到哪、有什么坑，避免重蹈覆辙
 3. **高危流程提醒**（遇到才生效）：
    - 涉及金钱/定价/预算 → 必须先问创始人，不自行决策
    - 涉及用户可见的界面/文案/交互变化 → 先问创始人确认方向
@@ -338,9 +338,11 @@ Bug 修复流水线：创始人报告问题 → QA 排查确认 → Dev 修复 �
 
 每次开始一个新任务前，Director 必须先执行：
 
-1. 从任务描述里提取关键词，调度 Dev 执行 `bash .opencode/skills/lessons-index/search.sh {关键词}`（Director 不直接执行脚本、不直接读文件——统一由 Dev 代跑，双环境行为一致；OpenCode 运行时 Director 无 bash/read 权限，物理上也只能委托）
+1. 从任务描述里提取关键词，调度 Dev 执行 lessons-index 教训检索（检索脚本路径由运行时配置决定：OpenCode 为 `.opencode/skills/lessons-index/search.sh`，其他运行时见各 adapter 配置；教训库路径 `$OPC_KNOWLEDGE_PATH/08-Lessons/`，draft 草稿不参与检索）
 2. Dev 回报命中教训的摘要，Director 按教训调整这次任务的做法，不重复踩已记录过的坑
 3. 检索脚本无输出（无命中）时正常开工
+
+注：部分运行时（Claude Code、Pi）已通过 hook 在用户提交 prompt 时自动注入教训检索结果，如已注入则无需重复执行；hook 不可用或未注入时，按上述流程手动执行。本指令为唯一权威来源，hook 是自动加成，不替代本流程。
 
 ## 事故流水线
 

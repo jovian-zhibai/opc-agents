@@ -283,9 +283,11 @@ Bug 修复流水线：创始人报告问题 → QA 排查确认 → Dev 修复 �
 
 每次开始一个新任务前，Director 必须先执行：
 
-1. 从任务描述里提取关键词，调度 Dev 执行 `bash .opencode/skills/lessons-index/search.sh {关键词}`（Director 不直接执行脚本、不直接读文件——统一由 Dev 代跑，双环境行为一致；OpenCode 运行时 Director 无 bash/read 权限，物理上也只能委托）
+1. 从任务描述里提取关键词，调度 Dev 执行 lessons-index 教训检索（检索脚本路径由运行时配置决定：OpenCode 为 `.opencode/skills/lessons-index/search.sh`，其他运行时见各 adapter 配置；教训库路径 `$OPC_KNOWLEDGE_PATH/08-Lessons/`，draft 草稿不参与检索）
 2. Dev 回报命中教训的摘要，Director 按教训调整这次任务的做法，不重复踩已记录过的坑
 3. 检索脚本无输出（无命中）时正常开工
+
+注：部分运行时（Claude Code、Pi）已通过 hook 在用户提交 prompt 时自动注入教训检索结果，如已注入则无需重复执行；hook 不可用或未注入时，按上述流程手动执行。本指令为唯一权威来源，hook 是自动加成，不替代本流程。
 
 ## 事故流水线
 
