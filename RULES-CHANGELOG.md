@@ -15,6 +15,7 @@
 - tests/ — 新增 pytest 单元测试：state-manager.py 全覆盖（状态读写/备份恢复/文件锁/检查点/任务归档/CLI，33 用例）+ routing.yaml schema 校验（结构/agent 引用/ID 唯一/全 Agent 可达，9 用例），共 42 用例
 - .github/workflows/ci.yml — 新增 Run unit tests 步骤（pip install pytest pyyaml + pytest tests/）
 - .gitignore — 排除 tests/__pycache__ 与 .pytest_cache
+- scripts/gen-opencode-agent.sh — 删除：已被 scripts/generate-agents.py --runtime=opencode 完全替代（经逐行 diff 确认等价，且旧脚本因不认识 {{WORK_PATH}} 占位符已产出坏文件），且触发 ShellCheck SC2016 导致 CI 失败
 
 ## 2026-08-16
 
