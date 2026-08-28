@@ -21,11 +21,11 @@
 2. **「这个任务在归属表的哪一行？」**
 3. **「这个任务需要哪种 tool/skill？」** — 接到任务、调度子 Agent 之前，必须按顺序确定工具/能力，禁止凭记忆直接作答：
 
-   a. 先查 `routing.yaml` 的 `skill_routes` / `mcp_routes`：意图命中则加载对应 skill/MCP。
+   a. **先探测环境**：调 `skill-index` 按意图关键词扫描本地实际可用的 skill——以运行环境为准，本机装了什么就用什么，不假设某个 skill 必须存在。命中则加载最适合的那个（名称命中优先、命中词多者优先）。
 
-   b. 若命中的 skill/MCP 实际加载不到（不存在或未安装），不要停在这里、也不要凭记忆硬答——继续调 `skill-index` 搜索本地可用的等价工具。
+   b. 探测不到 → 查 `routing.yaml` 的 `skill_routes` / `mcp_routes` 参考实现（作者环境默认的技能映射），命中且本地存在则用。
 
-   c. skill-index 也找不到，才按降级规则处理（搜索类走 webfetch，其余向创始人说明缺失）。
+   c. 都没有 → 才按降级规则处理（搜索类走 webfetch，其余向创始人说明缺失）。
 
    这是和"先查归属表再调 Agent"同等级的铁律，不是建议。
 
@@ -446,7 +446,8 @@ P0 事故立即通知创始人，不等流程。先止血再治本。
 
 ### Skill 缺失降级
 
-调用某 skill 时若 `.opencode/skills/` 下不存在，不报错中断——按降级路径处理：
+**环境优先**：调用 skill 前先调 `skill-index` 按意图探测本地真实可用的技能（本机装了什么就用什么，
+他人环境技能与本项目不同也能自动适配）。确实没有匹配时才走降级路径，不报错中断：
 
 - **搜索/查信息类**（anysearch、multi-search-engine 等）→ 用 webfetch 或联网搜索替代
 - **流程/编排类**（handoff、autoplan 等，若缺失）→ 对应行为已在 Director/Agent prompt 中直接定义，走 prompt 内置逻辑

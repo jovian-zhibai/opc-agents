@@ -81,7 +81,7 @@ Advisor 在关键决策点介入质疑，QA 和 Guardian 的首要职责是"找�
 
 ### OpenCode Skill 说明
 
-OpenCode 的 agent front matter 声明了若干 skill（如 anysearch、multi-search-engine 等），目录 `.opencode/skills/` 下需自行准备。若 skill 缺失，系统按 Director prompt 中的降级规则处理：搜索类走 webfetch 替代，流程编排类走 prompt 内置逻辑，不会中断。Claude Code 侧无 skill 机制，可忽略。
+OpenCode 的 agent front matter 声明了若干 skill（如 anysearch、multi-search-engine 等），目录 `.opencode/skills/` 下需自行准备。**系统以运行环境为准**：Director 会先调 `skill-index` 探测本机实际可用的 skill，按意图选最适合的（本机装了什么就用什么，他人 clone 后技能不同也能自动适配），探测不到才回退 routing.yaml 的参考实现；仍无匹配才按降级规则处理（搜索类走 webfetch 替代，流程编排类走 prompt 内置逻辑），不会中断。Claude Code 侧无 skill 机制，可忽略。
 
 ## 任务分级
 

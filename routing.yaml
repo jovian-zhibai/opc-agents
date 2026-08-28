@@ -181,7 +181,11 @@ routes:
 # "登录页有点丑"→调 UI-UX、"代码跑得通吗"→调 QA——这些是 LLM 做的，不是 keyword dispatch。
 fallback: "director-intent"
 
-# ─── Skill 路由表：意图 → 对应 skill ───
+# ─── Skill 路由表：意图 → 参考 skill ───
+# 【重要】本表的 skills 是「作者环境的参考实现」，不是强制依赖。
+# 实际调用以 director 铁律为准：先调 skill-index 探测本地真实可用的 skill（环境优先，
+# 本机装了什么就用什么、按意图选最适合的），探测不到才回退本表参考；两者皆无才降级。
+# 因此他人 clone 后即使技能与本表不同，也能按意图匹配到自己的技能，无需补齐本表。
 # 全局依赖（不提交仓库）：以下 skill 仅存在于 ~/.agents/skills/（用户级），不在 .opencode/skills/ 下，
 #   OpenCode 本地未安装属预期，缺失时按 director 的『Skill 缺失降级』规则走降级路径：
 #   - anysearch：通用搜索（全局已安装 ✓）
