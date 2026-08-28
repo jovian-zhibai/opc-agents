@@ -167,10 +167,10 @@ adapters/                  运行时适配配置（声明式转换规则）
 .gemini/                   Gemini 运行时产物（生成器生成）
 .codex/                    Codex 运行时产物（生成器生成，TOML 格式）
 scripts/                   自动化脚本
+├── auto-check.sh          每日运维自检（知识库 Inbox、活跃任务、Git 状态、过期知识）
 ├── generate-agents.py     多运行时 Agent 生成器（prompts/ + adapter → 各运行时产物）
 ├── quality-gate.sh        一致性检查（跑这个确认生成产物与 prompts/ 未漂移）
-├── state-manager.py       状态管理（含中断恢复）
-└── ...
+└── state-manager.py       状态管理（含中断恢复）
 tests/                     pytest 测试
 ├── test_adapter_schema.py     adapters/*.yaml 结构校验（23 用例）
 ├── test_toml_serialization.py TOML 序列化健壮性 + 对抗测试（12 用例）

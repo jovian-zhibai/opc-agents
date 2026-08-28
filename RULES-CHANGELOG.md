@@ -23,6 +23,7 @@
 - prompts/*.md + scripts/generate-agents.py — description 单源化：给 10 个 prompts/ 文件加 front matter（只含 description），codex 的 description 改为从 prompts/ front matter 提取，不再从 .opencode/agents/ 捞，消除跨运行时耦合。opencode 继续从现有文件提取完整 front matter（含 mode/temperature/tools 等），其他运行时 strip front matter 后正文不变 → 5 运行时 × 10 角色 0-diff 保持
 - tests/test_adapter_schema.py — 新增 23 用例：adapters/*.yaml 结构校验（生成器命脉，字段拼错会静默生成错产物）。正向：5 个现有 adapter 全部通过 + runtime 字段与文件名一致；反向：缺必需键/未知顶层键/类型错误/agent_format 缺键/非法 type/front_matter 缺 enabled 均被拒。纯 Python 实现，不引 jsonschema 依赖，参照 routing.yaml schema 校验写法
 - README.md — 全面同步为五运行时单源架构现状：标题改为"五运行时单源架构"，快速开始补五运行时表格，新增"五运行时单源架构"章节（核心原则/生成流程/各运行时格式/CLAUDE.md 标记块机制），项目结构补 adapters/、tests/、五运行时目录、generate-agents.py、.githooks/，已知决策表加五运行时单源架构/Director 单源化/description 单源化三条，"双运行时文件保护"改为"多运行时文件保护"。删掉所有"双运行时/两版"旧措辞
+- scripts/sync-opencode.sh + tests/test_sync_opencode.py — 删除死脚本及其 7 个测试。功能（prompts/ → .opencode/agents/ 单向章节同步）已被 generate-agents.py --runtime=opencode --all 完全取代；无任何运行时/CI/hook 调用，仅 tests/ 覆盖。README scripts/ 清单同步修正：显式列出 auto-check.sh（每日运维自检，独立工具未被取代）、generate-agents.py、quality-gate.sh、state-manager.py 四个实际脚本，去掉"…"占位
 
 ## 2026-08-16
 
