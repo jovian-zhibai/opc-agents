@@ -402,6 +402,31 @@ EOF
   fi
 fi
 
+# 6.1 CLAUDE.md 知识写入规则表路径锚定检查（不依赖知识库目录，CI 可跑）
+# 防止 D 项修复被回退：表内每个目标目录必须以 $OPC_KNOWLEDGE_PATH/ 开头
+if [ -f "$CLAUDE_MD" ]; then
+  BARE_COUNT=0
+  # 提取「知识写入规则」表的目标目录列（用 | 分隔的第三列，trim 空格）
+  # flag 遇到下一个 ### 三级标题即关闭，避免提取后面的「搜索工具映射」表
+  # 只检查含 / 的行（跳过表头"写到哪"）
+  BARE_DIRS=$(awk -F'|' '/知识写入规则/{flag=1; next} /^### /{flag=0} flag && /^\|/ {gsub(/^[ \t]+|[ \t]+$/, "", $3); if ($3 ~ /\//) print $3}' "$CLAUDE_MD" 2>/dev/null)
+  while IFS= read -r dir; do
+    [[ -z "$dir" ]] && continue
+    [[ "$dir" =~ ^-+ ]] && continue  # 跳过表头分隔行（如 ------）
+    if [[ "$dir" != \$OPC_KNOWLEDGE_PATH/* ]]; then
+      echo "  ❌ CLAUDE.md 知识写入规则表：目标目录 '$dir' 未锚定 \$OPC_KNOWLEDGE_PATH/（裸路径会被解析为 CWD 相对路径）"
+      BARE_COUNT=$((BARE_COUNT + 1))
+    fi
+  done <<EOF
+$BARE_DIRS
+EOF
+  if [ "$BARE_COUNT" -eq 0 ]; then
+    echo "  ✅ CLAUDE.md 知识写入规则表所有目标目录均已锚定 \$OPC_KNOWLEDGE_PATH/"
+  else
+    ERRORS=$((ERRORS + BARE_COUNT))
+  fi
+fi
+
 echo ""
 
 # ---------- 7. 红线密钥检查 ----------
