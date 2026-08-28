@@ -26,6 +26,7 @@
 - tests/test_adapter_schema.py — 新增 23 用例：adapters/*.yaml 结构校验（生成器命脉，字段拼错会静默生成错产物）。正向：5 个现有 adapter 全部通过 + runtime 字段与文件名一致；反向：缺必需键/未知顶层键/类型错误/agent_format 缺键/非法 type/front_matter 缺 enabled 均被拒。纯 Python 实现，不引 jsonschema 依赖，参照 routing.yaml schema 校验写法
 - README.md — 全面同步为五运行时单源架构现状：标题改为"五运行时单源架构"，快速开始补五运行时表格，新增"五运行时单源架构"章节（核心原则/生成流程/各运行时格式/CLAUDE.md 标记块机制），项目结构补 adapters/、tests/、五运行时目录、generate-agents.py、.githooks/，已知决策表加五运行时单源架构/Director 单源化/description 单源化三条，"双运行时文件保护"改为"多运行时文件保护"。删掉所有"双运行时/两版"旧措辞
 - scripts/sync-opencode.sh + tests/test_sync_opencode.py — 删除死脚本及其 7 个测试。功能（prompts/ → .opencode/agents/ 单向章节同步）已被 generate-agents.py --runtime=opencode --all 完全取代；无任何运行时/CI/hook 调用，仅 tests/ 覆盖。README scripts/ 清单同步修正：显式列出 auto-check.sh（每日运维自检，独立工具未被取代）、generate-agents.py、quality-gate.sh、state-manager.py 四个实际脚本，去掉"…"占位
+- 受保护文件跨环境编辑差异说明 — Claude Code 运行时的 PreToolUse hook（.claude/hooks/protect-prompts.py）会硬拦截对 prompts/、routing.yaml、CLAUDE.md、opencode.json、feedback.schema.json 等的 Write/Edit（exit 1）；但 MainAgent/其它环境的编辑工具不经过该 hook，故本次 routing.yaml（f49d002）得以直接编辑。提醒：日后在 Claude Code 内改这些受保护文件会被拦截，需由创始人手动或走正式流程（调度 AgentManager/Dev 通过其它方式执行），不要强行绕过保护
 
 ## 2026-08-16
 
