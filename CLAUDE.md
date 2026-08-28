@@ -202,12 +202,12 @@ Bug 修复：QA 排查 → Dev 修复 → QA 回归 → 归档。
 
 | 场景 | 写到哪 |
 | ------ | -------- |
-| 架构决策 | 01-ADR/ |
-| 技术方案 | 03-Design/ |
-| 非显然问题解决 | 08-Lessons/ |
-| 会议结束 | 09-Conversations/ |
-| 竞品分析 | 05-Competitor/ |
-| PRD 完成 | 02-PRD/ |
+| 架构决策 | $OPC_KNOWLEDGE_PATH/01-ADR/ |
+| 技术方案 | $OPC_KNOWLEDGE_PATH/03-Design/ |
+| 非显然问题解决 | $OPC_KNOWLEDGE_PATH/08-Lessons/ |
+| 会议结束 | $OPC_KNOWLEDGE_PATH/09-Conversations/ |
+| 竞品分析 | $OPC_KNOWLEDGE_PATH/05-Competitor/ |
+| PRD 完成 | $OPC_KNOWLEDGE_PATH/02-PRD/ |
 
 **规则**：文件命名 `{YYYY-MM-DD}-{标题}.md`；必须含 status 字段（active/deprecated/superseded）；>180天 active 条目需复审；写入前先搜索是否已有。
 
