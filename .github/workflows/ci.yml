@@ -38,6 +38,11 @@ jobs:
         with:
           scandir: "./scripts"
 
+      - name: Run unit tests (pytest)
+        run: |
+          pip3 install --quiet pytest pyyaml
+          python3 -m pytest tests/ -q
+
       - name: Check no hardcoded secrets
         run: |
           # 扫描整个仓库『会被提交』的文件集（git tracked + 未忽略的未跟踪），

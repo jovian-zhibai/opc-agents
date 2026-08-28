@@ -12,6 +12,9 @@
 - scripts/sync-opencode.sh — local tmp 声明与赋值拆行（修复 CI ShellCheck SC2155）
 - scripts/quality-gate.sh — 门禁清零：prompts/ 无 front matter 由警告降级为 ℹ️（Claude Code 共享版按设计不含 front matter，原检查与设计矛盾）；skill 缺失降级为 ℹ️（routing.yaml 已声明预期、按降级规则处理不阻塞）。结果 0 errors 0 warnings
 - git — 删除两个已合并 stale 分支：docs/annotate-cc-skill-deadlinks、feat/memory-cmd-log
+- tests/ — 新增 pytest 单元测试：state-manager.py 全覆盖（状态读写/备份恢复/文件锁/检查点/任务归档/CLI，33 用例）+ routing.yaml schema 校验（结构/agent 引用/ID 唯一/全 Agent 可达，9 用例），共 42 用例
+- .github/workflows/ci.yml — 新增 Run unit tests 步骤（pip install pytest pyyaml + pytest tests/）
+- .gitignore — 排除 tests/__pycache__ 与 .pytest_cache
 
 ## 2026-08-16
 
