@@ -1,6 +1,7 @@
 #!/bin/bash
-# OPC Agent 一致性检查（双运行时版）
-# 检查 prompts/（共享）+ .opencode/agents/（OpenCode 配置）的引用一致性和完整性
+# OPC Agent 一致性检查（五运行时版）
+# 检查 prompts/（唯一真相源）+ 各运行时 agents/ 目录的引用一致性和完整性
+# 当前主检查 prompts/ vs .opencode/agents/，CLAUDE.md 标记块单独校验
 
 set -euo pipefail
 
@@ -14,7 +15,7 @@ KNOWLEDGE="${OPC_KNOWLEDGE_PATH:-$HOME/code/opc/opc-knowledge}"
 ERRORS=0
 WARNINGS=0
 
-echo "=== OPC Agent 一致性检查（双运行时版） ==="
+echo "=== OPC Agent 一致性检查（五运行时版） ==="
 echo ""
 
 # ---------- 1. prompts/ 文件完整性 ----------
@@ -265,14 +266,14 @@ for a in "${ACTUAL_PROMPTS[@]}"; do
 done
 
 if [ "$boundary_errors" -eq 0 ]; then
-  echo "  ✅ 所有子 Agent 职责边界表两版一致"
+  echo "  ✅ 所有子 Agent 职责边界表 prompts 版与 opencode 版一致"
 else
   ERRORS=$((ERRORS + boundary_errors))
 fi
 
 # ---------- 4.8. 关键字段漂移检查（prompts/ vs .opencode/ 行为级） ----------
 # 锚点检查查不出正文漂移（2026-08-16 审查发现 9/10 文件存在行为级差异）。
-# 这里对每个角色文件校验关键字段（红线/路径变量/环境变量）是否两版同步。
+# 这里对每个角色文件校验关键字段（红线/路径变量/环境变量）是否 prompts 版与 opencode 版同步。
 # 注：路径前缀（$OPC_WORK_PATH vs .opencode/work）是有意设计的两环境差异，不做硬比对。
 # ---------- 4.8. 角色文件内容级漂移检查（prompts/ vs .opencode/） ----------
 # 锚点 grep 判别力为零（2026-08-16 重审确认），改为逐行 diff 归一化内容：

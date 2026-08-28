@@ -67,7 +67,7 @@ def test_drift_detected_when_prompts_has_missing_content(tmp_path):
     assert result.returncode == 1
 
 
-# ---------- 2. 一致场景：两版内容相同 → 4.8 不报漂移 ----------
+# ---------- 2. 一致场景：prompts 版与 opencode 版内容相同 → 4.8 不报漂移 ----------
 
 def test_no_drift_when_identical(tmp_path):
     scripts_dir, prompts_dir, agents_dir = _setup_env(tmp_path)
