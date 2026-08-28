@@ -1,0 +1,18 @@
+#!/bin/bash
+# OPC post-checkout hook: 切换分支后自动重新生成所有运行时 Agent 定义
+# 确保本地工作区始终和 prompts/ 同步
+
+set -euo pipefail
+
+# 只在切换分支时触发（第三个参数为 1 表示分支切换，0 表示文件恢复）
+if [ "${3:-0}" = "1" ]; then
+    echo "🔄 检测到分支切换，自动重新生成所有运行时 Agent 定义..."
+    for runtime in opencode claude-code; do
+        if [ -f "adapters/${runtime}.yaml" ]; then
+            python3 scripts/generate-agents.py --runtime="$runtime" --all --write >/dev/null 2>&1 || true
+        fi
+    done
+    echo "✅ 自动生成完成"
+fi
+
+exit 0

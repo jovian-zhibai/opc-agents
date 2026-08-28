@@ -1,0 +1,15 @@
+#!/bin/bash
+# OPC post-merge hook: 拉取代码后自动重新生成所有运行时 Agent 定义
+# 确保本地工作区始终和 prompts/ 同步
+
+set -euo pipefail
+
+echo "🔄 检测到代码拉取，自动重新生成所有运行时 Agent 定义..."
+for runtime in opencode claude-code; do
+    if [ -f "adapters/${runtime}.yaml" ]; then
+        python3 scripts/generate-agents.py --runtime="$runtime" --all --write >/dev/null 2>&1 || true
+    fi
+done
+echo "✅ 自动生成完成"
+
+exit 0

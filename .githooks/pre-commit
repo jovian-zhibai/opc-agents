@@ -1,0 +1,49 @@
+#!/bin/bash
+# OPC pre-commit hook:
+# 1. 检测到 prompts/ 或 adapters/ 改动时，自动重新生成所有运行时的 Agent 定义文件
+# 2. 检测到规则文件改动时，跑 quality-gate 验证
+#
+# 安装：git config core.hooksPath .githooks
+# 跳过：git commit --no-verify（不推荐）
+
+set -euo pipefail
+
+STAGED=$(git diff --cached --name-only 2>/dev/null || true)
+
+# ─── 1. 自动生成：检测到 prompts/ 或 adapters/ 改动时 ───
+GEN_PATTERN='^(prompts/|adapters/)'
+if echo "$STAGED" | grep -qE "$GEN_PATTERN"; then
+    echo "🔄 检测到 prompts/ 或 adapters/ 改动，自动重新生成所有运行时 Agent 定义..."
+
+    # 生成所有已配置的运行时
+    for runtime in opencode claude-code; do
+        if [ -f "adapters/${runtime}.yaml" ]; then
+            python3 scripts/generate-agents.py --runtime="$runtime" --all --write >/tmp/opc-gen-${runtime}.log 2>&1 || {
+                echo "❌ ${runtime} 生成失败，详情："
+                tail -20 /tmp/opc-gen-${runtime}.log
+                exit 1
+            }
+        fi
+    done
+
+    # 添加生成产物到暂存区
+    git add .opencode/agents/ .claude/agents/ 2>/dev/null || true
+
+    echo "✅ 自动生成完成，生成产物已添加到暂存区"
+fi
+
+# ─── 2. quality-gate：检测到规则文件改动时 ───
+RULE_FILES_PATTERN='^(CLAUDE\.md|prompts/|\.opencode/|routing\.yaml|scripts/|adapters/|\.githooks/)'
+if echo "$STAGED" | grep -qE "$RULE_FILES_PATTERN"; then
+    echo "🔍 检测到规则文件改动，运行 quality-gate 验证..."
+    if ! bash scripts/quality-gate.sh >/tmp/opc-gate-check.log 2>&1; then
+        echo "❌ quality-gate 未通过，提交已拦截。详情："
+        tail -20 /tmp/opc-gate-check.log
+        echo ""
+        echo "修复后再提交，或用 git commit --no-verify 强制跳过（不推荐）。"
+        exit 1
+    fi
+    echo "✅ quality-gate 通过"
+fi
+
+exit 0

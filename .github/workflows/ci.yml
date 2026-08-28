@@ -43,6 +43,32 @@ jobs:
           pip3 install --quiet pytest pyyaml
           python3 -m pytest tests/ -q
 
+      - name: Verify generated agents are in sync with prompts/
+        run: |
+          # 从 prompts/ 重新生成所有运行时的 Agent 定义，检查是否和仓库中的一致
+          # 如果不一致，说明用户改了 prompts/ 但忘了跑生成器（或 pre-commit hook 未生效）
+          pip3 install --quiet pyyaml
+          for runtime in opencode claude-code; do
+            if [ -f "adapters/${runtime}.yaml" ]; then
+              echo "▶ 生成 ${runtime}..."
+              python3 scripts/generate-agents.py --runtime="$runtime" --all --write
+            fi
+          done
+          # 检查是否有未提交的变化
+          if ! git diff --quiet -- .opencode/agents/ .claude/agents/; then
+            echo "❌ 生成产物与 prompts/ 不同步！"
+            echo "   请在本地运行：python3 scripts/generate-agents.py --runtime=opencode --all --write"
+            echo "   或配置 git hook：git config core.hooksPath .githooks"
+            echo ""
+            echo "   差异详情："
+            git diff --stat -- .opencode/agents/ .claude/agents/
+            exit 1
+          fi
+          echo "✅ 所有运行时生成产物与 prompts/ 同步"
+
+      - name: Run quality-gate
+        run: bash scripts/quality-gate.sh
+
       - name: Run skill shell self-tests
         run: |
           # 遍历 .opencode/skills/ 下各 skill 的 test.sh（若有），逐个执行
