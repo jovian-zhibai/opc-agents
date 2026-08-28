@@ -161,6 +161,55 @@ def inject_content(content: str, inject_configs: list, role: str) -> str:
     return content
 
 
+def inject_managed_block(entry_file: Path, block_content: str, block_type: str = "markdown", write: bool = False) -> dict:
+    """注入/替换入口文件中的标记块内容。只替换标记块内，块外保持不动。"""
+    if not entry_file.exists():
+        return {"error": f"入口文件不存在: {entry_file}"}
+
+    with open(entry_file, encoding="utf-8") as f:
+        content = f.read()
+
+    if block_type == "markdown":
+        start_marker = "<!-- OPC:GENERATED:START -->"
+        end_marker = "<!-- OPC:GENERATED:END -->"
+    elif block_type == "toml":
+        start_marker = "# OPC:GENERATED:START"
+        end_marker = "# OPC:GENERATED:END"
+    else:
+        return {"error": f"不支持的 block_type: {block_type}"}
+
+    start_idx = content.find(start_marker)
+    end_idx = content.find(end_marker)
+
+    if start_idx == -1 or end_idx == -1:
+        return {"error": f"未找到标记块 {start_marker} / {end_marker}，请先手动添加标记块"}
+
+    if end_idx < start_idx:
+        return {"error": "标记块顺序错误"}
+
+    # 替换标记块内内容（保留标记本身）
+    before = content[:start_idx + len(start_marker)]
+    after = content[end_idx:]
+    new_content = f"{before}\n{block_content.rstrip()}\n{after}"
+
+    if write:
+        with open(entry_file, "w", encoding="utf-8") as f:
+            f.write(new_content)
+        return {"written": True, "file": str(entry_file)}
+    else:
+        # dry-run：写到 /tmp，统计差异
+        import subprocess
+        tmp_file = Path(f"/tmp/gen-block-{entry_file.name}")
+        with open(tmp_file, "w", encoding="utf-8") as f:
+            f.write(new_content)
+        result = subprocess.run(
+            ["diff", str(entry_file), str(tmp_file)],
+            capture_output=True, text=True
+        )
+        diff_lines = [l for l in result.stdout.split("\n") if l.startswith(("<", ">"))]
+        return {"diff_count": len(diff_lines), "tmp_file": str(tmp_file)}
+
+
 def generate_role(role: str, adapter_config: dict, write: bool = False) -> dict:
     """生成单个角色的 Agent 定义文件。返回差异统计。"""
     runtime = adapter_config["runtime"]
