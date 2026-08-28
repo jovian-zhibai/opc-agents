@@ -2,7 +2,7 @@
 
 一人公司（One Person Company）AI Agent 团队系统。
 
-Director + 9 个子 Agent 的调度式协作架构。同时支持 **OpenCode** 和 **Claude Code** 两种运行环境。
+Director + 9 个子 Agent 的调度式协作架构。**五运行时单源架构**：`prompts/` 是唯一真相源，通过 `adapters/<runtime>.yaml` 声明式转换规则 + `scripts/generate-agents.py` 生成器，支持 **OpenCode / Claude Code / Pi / Gemini / Codex** 五种运行时。
 
 ## 快速开始
 
@@ -27,20 +27,17 @@ mkdir -p $OPC_WORK_PATH $OPC_KNOWLEDGE_PATH
 #    "检查一下项目安全" → 调 Guardian
 ```
 
-### Claude Code
+### 五运行时
 
-```bash
-cd opc-agents
-# CLAUDE.md 自动加载为 Director 系统 prompt，直接说需求
-```
+| 运行时 | 入口 | 启动方式 |
+|--------|------|----------|
+| **Claude Code** | `CLAUDE.md`（标记块注入红线） | `cd opc-agents && claude` |
+| **OpenCode** | `opencode.json` + `.opencode/agents/` | `cd opc-agents && opencode` |
+| **Pi** | `.pi/agents/` | 按 Pi 运行时规范启动 |
+| **Gemini** | `.gemini/agents/` | 按 Gemini CLI 规范启动 |
+| **Codex** | `.codex/agents/*.toml` | 按 Codex CLI 规范启动 |
 
-### OpenCode
-
-```bash
-cd opc-agents
-opencode
-# Director 自动运行，支持 Tab 切换和 @提及 调度子 Agent
-```
+> **模型配置**：各运行时的模型由用户自己的全局配置决定（如 Codex 的 `~/.codex/config.toml`），生成的 agent 文件不硬编码 model 字段。
 
 ## Agent 团队
 
@@ -67,21 +64,60 @@ Advisor 在关键决策点介入质疑，QA 和 Guardian 的首要职责是"找�
 
 **创始人只需要说需求，Director 自动调度。**
 
-## 双运行时支持
+## 五运行时单源架构
 
-| | Claude Code | OpenCode |
-| --- | --- | --- |
-| 入口文件 | `CLAUDE.md` | `opencode.json` + `.opencode/agents/` |
-| Agent 调度 | task tool | Tab / @提及 |
-| 提示词目录 | `prompts/`（共享） | `prompts/`（共享） + `.opencode/agents/`（front matter） |
+### 核心原则
 
-两种运行时共享同一套归属表（`routing.yaml`）和 Agent 核心约束（`prompts/`）。9 个子 Agent 两版已收敛为同款精简版，核心章节（红线、职责边界、质量门禁、协作接口）保持一致。但各有运行时特定的头部（front matter）、产出路径（`$OPC_WORK_PATH/` vs `.opencode/work/`）和段落差异（如 director 的调度机制描述），并非逐字相同。改规则时须同步两份核心章节并跑 `bash scripts/quality-gate.sh` 确认（0 errors = 无漂移）。
+- **唯一真相源**：`prompts/` 目录下的 10 个角色定义是唯一真相源，包含 front matter（description）+ 正文
+- **声明式转换**：`adapters/<runtime>.yaml` 定义每个运行时的转换规则（路径替换、章节处理、front matter、输出格式等）
+- **生成器**：`scripts/generate-agents.py` 从 `prompts/` + adapter 生成各运行时的 agent 定义文件
+- **生成产物入库**：各运行时的 agent 文件（`.opencode/agents/`、`.claude/agents/`、`.pi/agents/`、`.gemini/agents/`、`.codex/agents/`）提交入库，靠 CI 同步校验保证不漂移
 
-> **已知的有意差异**：`prompts/` 版的「能力边界」章节（如 qa.md:76、agent-manager.md）在 `.opencode/agents/` 版中由 front matter 的 `skills:` 字段替代——OpenCode 用 front matter 机制声明 skill 依赖，Claude Code 用正文段落。此为设计而非漂移，不要"修复"。
+### 生成流程
+
+```bash
+# 生成单个运行时的所有角色（dry-run，显示差异）
+python3 scripts/generate-agents.py --runtime=opencode --all
+
+# 写入文件
+python3 scripts/generate-agents.py --runtime=opencode --all --write
+
+# 生成单个角色
+python3 scripts/generate-agents.py --runtime=codex --role=director --write
+
+# CLAUDE.md 标记块注入（红线节从 prompts/director.md 同步）
+python3 scripts/generate-agents.py --entry-block CLAUDE.md --section 红线 --write
+
+# 列出可用运行时
+python3 scripts/generate-agents.py --list
+```
+
+### 各运行时格式
+
+| 运行时 | 输出格式 | 目录 | 说明 |
+|--------|----------|------|------|
+| OpenCode | markdown + YAML front matter | `.opencode/agents/*.md` | front matter 从现有文件提取（含 mode/temperature/tools/permission/skills），正文从 prompts/ 生成 |
+| Claude Code | markdown（无 front matter） | `.claude/agents/*.md` | 正文从 prompts/ 生成，strip front matter |
+| Pi | markdown（无 front matter） | `.pi/agents/*.md` | 同上 |
+| Gemini | markdown（无 front matter） | `.gemini/agents/*.md` | 同上 |
+| Codex | TOML | `.codex/agents/*.toml` | name/description/developer_instructions，model 由用户全局配置决定 |
+
+### CLAUDE.md 标记块机制
+
+`CLAUDE.md` 是 Claude Code 的入口文件，其中"红线"节使用标记块注入：
+
+```markdown
+<!-- OPC:GENERATED:START -->
+## 红线
+...（从 prompts/director.md 红线节生成）
+<!-- OPC:GENERATED:END -->
+```
+
+生成器只替换标记块内内容，块外手工内容（调度机制、知识库目录、搜索工具映射等）保持不动。CI 校验标记块与 prompts/ 同步，防止静默漂移。
 
 ### OpenCode Skill 说明
 
-OpenCode 的 agent front matter 声明了若干 skill（如 anysearch、multi-search-engine 等），目录 `.opencode/skills/` 下需自行准备。**系统以运行环境为准**：Director 会先调 `skill-index` 探测本机实际可用的 skill，按意图选最适合的（本机装了什么就用什么，他人 clone 后技能不同也能自动适配），探测不到才回退 routing.yaml 的参考实现；仍无匹配才按降级规则处理（搜索类走 webfetch 替代，流程编排类走 prompt 内置逻辑），不会中断。Claude Code 侧无 skill 机制，可忽略。
+OpenCode 的 agent front matter 声明了若干 skill（如 anysearch、multi-search-engine 等），目录 `.opencode/skills/` 下需自行准备。**系统以运行环境为准**：Director 会先调 `skill-index` 探测本机实际可用的 skill，按意图选最适合的（本机装了什么就用什么，他人 clone 后技能不同也能自动适配），探测不到才回退 routing.yaml 的参考实现；仍无匹配才按降级规则处理（搜索类走 webfetch 替代，流程编排类走 prompt 内置逻辑），不会中断。其他运行时无 skill 机制，可忽略。
 
 ## 任务分级
 
@@ -99,11 +135,11 @@ OpenCode 的 agent front matter 声明了若干 skill（如 anysearch、multi-se
 ## 项目结构
 
 ```
-CLAUDE.md                  Claude Code 入口（Director 系统 prompt）
+CLAUDE.md                  Claude Code 入口（Director 系统 prompt，红线节标记块注入）
 routing.yaml               操作归属路由表（单一真相源）
 feedback.schema.json       反馈信号格式定义
 opencode.json              OpenCode 入口
-prompts/                   共享 Agent 提示词（10 个文件，与 .opencode/agents/ 行为一致）
+prompts/                   唯一真相源：10 个角色定义（front matter + 正文）
 ├── director.md
 ├── advisor.md
 ├── dev.md
@@ -114,14 +150,38 @@ prompts/                   共享 Agent 提示词（10 个文件，与 .opencode
 ├── growth.md
 ├── finance.md
 └── agent-manager.md
-.opencode/                 OpenCode 运行时配置
-├── agents/                10 个 Agent 定义（含 front matter）
+adapters/                  运行时适配配置（声明式转换规则）
+├── opencode.yaml
+├── claude-code.yaml
+├── pi.yaml
+├── gemini.yaml
+└── codex.yaml
+.opencode/                 OpenCode 运行时产物
+├── agents/                10 个 Agent 定义（含 front matter，生成器生成）
 └── skills/                通用 Skill 库
+.claude/                   Claude Code 运行时产物
+├── agents/                10 个 Agent 定义（生成器生成）
+├── hooks/                 Claude Code hooks（如 lessons-prompt.py）
+└── settings.json          PreToolUse hook 配置（受保护文件硬拦截）
+.pi/                       Pi 运行时产物（生成器生成）
+.gemini/                   Gemini 运行时产物（生成器生成）
+.codex/                    Codex 运行时产物（生成器生成，TOML 格式）
 scripts/                   自动化脚本
-├── auto-check.sh          每日自检
-├── quality-gate.sh        一致性检查（跑这个确认两版未漂移）
-├── sync-opencode.sh       双环境核心章节单向同步（prompts/ → .opencode/agents/）
-└── state-manager.py       状态管理（含中断恢复）
+├── generate-agents.py     多运行时 Agent 生成器（prompts/ + adapter → 各运行时产物）
+├── quality-gate.sh        一致性检查（跑这个确认生成产物与 prompts/ 未漂移）
+├── state-manager.py       状态管理（含中断恢复）
+└── ...
+tests/                     pytest 测试
+├── test_adapter_schema.py     adapters/*.yaml 结构校验（23 用例）
+├── test_toml_serialization.py TOML 序列化健壮性 + 对抗测试（12 用例）
+├── test_routing_schema.py     routing.yaml 结构校验（9 用例）
+├── test_quality_gate_drift.py quality-gate 漂移检测
+├── test_state_manager.py      state-manager 全覆盖（33 用例）
+└── ...
+.github/workflows/         CI 流水线
+├── ci.yml                 OPC Agents CI（pytest/ShellCheck/生成同步校验/CLAUDE.md 标记块校验/secret 扫描）
+└── quality-gate.yml       quality-gate.sh 自动运行
+.githooks/                 Git hooks（pre-commit 自动跑生成器 + quality-gate）
 work/                      运行时产出目录
 ```
 
@@ -166,18 +226,21 @@ mkdir -p $OPC_WORK_PATH $OPC_KNOWLEDGE_PATH
 | 决策 | 理由 | 日期 |
 | ------ | ------ | ------ |
 | ~~不引入 CI 门禁~~（已废弃） | 原以为一人公司无 PR 流程、本地跑脚本即可；后规则文件多次漂移，改为 CI + pre-commit 双保险 | 2026-07-04 定，2026-08 废弃 |
-| 引入 CI 门禁（GitHub Actions） | `.github/workflows/quality-gate.yml`（push/PR 到 main 自动跑 quality-gate.sh）+ `.github/workflows/ci.yml`（prompts 完整性、ShellCheck、secret 扫描） | 2026-08 |
-| 引入 pre-commit 门禁 | `.git/hooks/pre-commit`：规则文件（CLAUDE.md/prompts/.opencode/routing.yaml/scripts）改动时强制跑 quality-gate，未通过即拦截提交 | 2026-08 |
+| 引入 CI 门禁（GitHub Actions） | `.github/workflows/quality-gate.yml`（push/PR 到 main 自动跑 quality-gate.sh）+ `.github/workflows/ci.yml`（pytest/ShellCheck/生成同步校验/CLAUDE.md 标记块校验/secret 扫描） | 2026-08 |
+| 引入 pre-commit 门禁 | `.githooks/pre-commit`：规则文件改动时自动跑生成器 + quality-gate，未通过即拦截提交 | 2026-08 |
+| 五运行时单源架构 | `prompts/` 唯一真相源 + `adapters/*.yaml` 声明式转换 + `scripts/generate-agents.py` 生成器，支持 opencode/claude-code/pi/gemini/codex。生成产物入库，CI 同步校验防漂移 | 2026-08 |
+| Director 单源化 | Director 纳入生成器（去掉 SKIP_ROLES），5 运行时 director 文件从 prompts/ 生成；CLAUDE.md 红线节用标记块注入，块外手工内容保持不动 | 2026-08 |
 | Codex agent 不硬编码 model | `.codex/agents/*.toml` 只含 name/description/developer_instructions，model 由用户自己的 `~/.codex/config.toml` 全局配置决定（ConfigToml.model 是 Option，缺省回落全局）。硬编码会把私有模型名/本地代理语义泄进公开仓库，且模型属环境关切不该焊进入库产物 | 2026-08 |
+| description 单源化 | `prompts/*.md` 加 front matter（只含 description），codex 的 description 从 prompts/ 提取，不再从 .opencode/ 捞，消除跨运行时耦合 | 2026-08 |
 
-### 双运行时文件保护（预期设计，勿“修复”）
+### 多运行时文件保护（预期设计，勿"修复"）
 
-Director 红线要求不直接改系统文件。两个运行时的物理拦截力度已对齐：
+Director 红线要求不直接改系统文件。各运行时的物理拦截力度已对齐：
 
 | 运行时 | 拦截方式 |
 |--------|----------|
 | Claude Code | `.claude/settings.json` PreToolUse hook（protect-prompts.py）对 `prompts/`、`.opencode/agents/`、`CLAUDE.md`、`routing.yaml`、`feedback.schema.json`、`opencode.json` 的 Write/Edit 硬拦截（exit 1） |
 | OpenCode | `opencode.json` permission.edit 对相同路径设为 `deny`（不允许、不询问） |
 
-这是**预期设计**：Director 改系统文件的通道在两个运行时都被物理切断，不走“LLM 自觉”或“弹窗询问”。
+这是**预期设计**：Director 改系统文件的通道在各运行时都被物理切断，不走"LLM 自觉"或"弹窗询问"。
 受保护文件的修改一律由创始人手动进行，或经正式流程（调度 AgentManager/Dev 通过其它方式执行）。

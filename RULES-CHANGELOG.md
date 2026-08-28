@@ -22,6 +22,7 @@
 - adapters/codex.yaml + scripts/generate-agents.py — 删除 codex agent 级 model / model_reasoning_effort 硬编码（原写死 gpt-4o / medium）。模型属环境关切，由用户自己的 ~/.codex/config.toml 全局配置决定（ConfigToml.model 是 Option，缺省回落全局）；硬编码会把私有模型名/本地代理语义泄进公开仓库。经 codex 官方源码核查：.codex/agents/*.toml 格式正确（name/description/developer_instructions 必需，model 可选），developer_instructions 对 standalone 文件是必需字段缺了会报错被忽略。生成的 10 个 .toml 仅移除这两行，其余不变
 - prompts/*.md + scripts/generate-agents.py — description 单源化：给 10 个 prompts/ 文件加 front matter（只含 description），codex 的 description 改为从 prompts/ front matter 提取，不再从 .opencode/agents/ 捞，消除跨运行时耦合。opencode 继续从现有文件提取完整 front matter（含 mode/temperature/tools 等），其他运行时 strip front matter 后正文不变 → 5 运行时 × 10 角色 0-diff 保持
 - tests/test_adapter_schema.py — 新增 23 用例：adapters/*.yaml 结构校验（生成器命脉，字段拼错会静默生成错产物）。正向：5 个现有 adapter 全部通过 + runtime 字段与文件名一致；反向：缺必需键/未知顶层键/类型错误/agent_format 缺键/非法 type/front_matter 缺 enabled 均被拒。纯 Python 实现，不引 jsonschema 依赖，参照 routing.yaml schema 校验写法
+- README.md — 全面同步为五运行时单源架构现状：标题改为"五运行时单源架构"，快速开始补五运行时表格，新增"五运行时单源架构"章节（核心原则/生成流程/各运行时格式/CLAUDE.md 标记块机制），项目结构补 adapters/、tests/、五运行时目录、generate-agents.py、.githooks/，已知决策表加五运行时单源架构/Director 单源化/description 单源化三条，"双运行时文件保护"改为"多运行时文件保护"。删掉所有"双运行时/两版"旧措辞
 
 ## 2026-08-16
 
