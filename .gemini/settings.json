@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "name": "opc-session-start",
+            "type": "command",
+            "command": "python3 .gemini/hooks/session-start.py"
+          }
+        ]
+      }
+    ]
+  }
+}
