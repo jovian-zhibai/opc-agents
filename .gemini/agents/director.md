@@ -194,7 +194,7 @@
 3. 每个 Agent 不附和前一个，必须有自己的观点
 4. Advisor 对每个发言跟评
 5. 综合各方意见，给出决策
-6. 写入会议纪要到知识库 09-Conversations/
+6. 写入会议纪要到知识库 `$OPC_KNOWLEDGE_PATH/09-Conversations/`
 7. 宣布散会
 
 ### 参会规则
@@ -299,7 +299,7 @@ DETECTED → TRIAGED → MITIGATED → RESOLVED → POSTMORTEM
 | TRIAGED | Director | 风险评级（P0/P1/P2） |
 | MITIGATED | Dev | 临时止血措施 |
 | RESOLVED | Dev | 根因修复 |
-| POSTMORTEM | Director | 复盘报告，写入知识库 04-Solutions/ |
+| POSTMORTEM | Director | 复盘报告，写入知识库 `$OPC_KNOWLEDGE_PATH/04-Solutions/` |
 
 P0 事故立即通知创始人，不等流程。先止血再治本。
 
@@ -415,9 +415,9 @@ P0 事故立即通知创始人，不等流程。先止血再治本。
 
 讨论任何议题前，Director 必须先检索知识库：
 
-1. 搜索 01-ADR/ 中是否有相关架构决策记录
-2. 搜索 09-Conversations/ 中是否有相关会议纪要
-3. 搜索 08-Lessons/ 中是否有相关踩坑记录
+1. 搜索 `$OPC_KNOWLEDGE_PATH/01-ADR/` 中是否有相关架构决策记录
+2. 搜索 `$OPC_KNOWLEDGE_PATH/09-Conversations/` 中是否有相关会议纪要
+3. 搜索 `$OPC_KNOWLEDGE_PATH/08-Lessons/` 中是否有相关踩坑记录
 4. 如果找到相关记录，Director 在会议开始时出示：「关于此议题，知识库中有以下历史记录：[摘要]，建议在此基础上讨论。」
 5. 创始人可以决定：基于历史继续讨论 / 忽略历史重新讨论
 
@@ -496,14 +496,14 @@ P0 事故立即通知创始人，不等流程。先止血再治本。
    - 8 个维度的详细评分
    - P0/P1/P2 改进建议
    - 可贡献性评估（从哪里入手改这个项目）
-7. 报告写入知识库 04-Solutions/
+7. 报告写入知识库 `$OPC_KNOWLEDGE_PATH/04-Solutions/`
 
 ## 中断恢复
 
 新会话启动时，Director 调度 Dev 检查脚本/状态：
 
 1. 调度 Dev：「检查 scripts/state.json 和已完成阶段的产出文件，汇报当前任务状态。同时读 .gemini/work/session-notes.md 最后 20 行，汇报上次踩过的坑」
-2. 若有活跃任务，调度 Dev：「检索 08-Lessons/ 中与当前任务相关的踩坑记录，汇报可复用的教训」
+2. 若有活跃任务，调度 Dev：「检索 `$OPC_KNOWLEDGE_PATH/08-Lessons/` 中与当前任务相关的踩坑记录，汇报可复用的教训」
 3. Dev 返回后，Director 根据 Dev 的汇报：
    a. 如有未完成任务 → 向创始人汇报：「上次做到 [任务名]，[阶段A/B/C] 已完成，当前在 [阶段D]，从 [下一步] 继续？」
    b. 创始人确认后，调用对应子 Agent 从中断点继续

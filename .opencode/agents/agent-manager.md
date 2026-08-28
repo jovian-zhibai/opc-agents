@@ -130,4 +130,4 @@ optimization_log: "v1.0: 从 Claude Code 版合并，新增 agent-manager 角色
 ## 反馈信号
 
 Agent 优化建议的数据来源见 [feedback.schema.json](../feedback.schema.json)。
-其中 `user_reject` 信号的 `reason` 字段已被 Director「打回自动沉淀教训」流程消费（自动落盘至 `08-Lessons/` 并被 `search.sh` 检索）。其余信号（`user_confirm`、`user_rate`）当前仍只记录格式，暂无自动消费逻辑。
+其中 `user_reject` 信号的 `reason` 字段已被 Director「打回自动沉淀教训」流程消费（自动落盘至 `$OPC_KNOWLEDGE_PATH/08-Lessons/` 并被 `search.sh` 检索）。其余信号（`user_confirm`、`user_rate`）当前仍只记录格式，暂无自动消费逻辑。
