@@ -224,7 +224,9 @@ def serialize_toml_agent(role: str, description: str, model: str, reasoning_effo
         "model_reasoning_effort": reasoning_effort,
         "developer_instructions": developer_instructions.rstrip("\n"),
     }
-    return tomli_w.dumps(toml_data)
+    # multiline_strings=True：含换行的字符串输出为 """ 多行块（可读，可 diff/review）；
+    # 遇到无法安全多行表示的字符串 tomli-w 会自动退回单行，安全。
+    return tomli_w.dumps(toml_data, multiline_strings=True)
 
 
 def generate_role(role: str, adapter_config: dict, write: bool = False) -> dict:
