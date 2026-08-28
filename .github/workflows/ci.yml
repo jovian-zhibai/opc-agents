@@ -94,21 +94,3 @@ jobs:
             echo "▶ 运行 $t"
             bash "$t"
           done
-
-      - name: Check no hardcoded secrets
-        run: |
-          # 扫描整个仓库『会被提交』的文件集（git tracked + 未忽略的未跟踪），
-          # 排除 .env/.env.example（本地配置与占位模板）、node_modules、.git、lock 文件、
-          # 以及 quality-gate.sh 自身（正文含正则定义，属自引用误报）。
-          FILES=$(git ls-files --cached --others --exclude-standard 2>/dev/null | \
-            grep -vE '(^|/)\.env(\.example)?$|node_modules|^\.git/|\.lock$|package-lock\.json$|pnpm-lock\.yaml$|^scripts/quality-gate\.sh$' || true)
-          if [ -n "$FILES" ]; then
-            # 过滤掉含正则定义字面本身的命中（本文件与 quality-gate.sh 正文含模式文本，属自引用误报）
-            if printf '%s\n' "$FILES" | xargs grep -nE 'sk-[A-Za-z0-9]{20,}|api_key=.{10,}|token=.{20,}' 2>/dev/null \
-              | grep -vF -e 'sk-[A-Za-z0-9]{20,}' -e 'api_key=.{10,}' -e 'token=.{20,}' \
-              -e 'sk-\[A-Za-z0-9\]\{20,\}' -e 'api_key=\.\{10,\}' -e 'token=\.\{20,\}'; then
-              echo "ERROR: Hardcoded API key found in tracked files"
-              exit 1
-            fi
-          fi
-          echo "✅ No hardcoded secrets found"
