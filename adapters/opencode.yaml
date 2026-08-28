@@ -30,12 +30,14 @@ path_replace:
       - from: "{{WORK_PATH}}/"
         to: "work/"
     # director 用环境变量 $OPC_WORK_PATH（与其他角色的 .opencode/work/ 不同）
-    # routing.yaml 相对路径需要从 ../ 改为 ../../（因为 .opencode/agents/ 比 prompts/ 深一层）
+    # routing.yaml / feedback.schema.json 相对路径需要从 ./ 改为 ../../（因为 .opencode/agents/ 比 prompts/ 深两层）
     director:
       - from: "{{WORK_PATH}}/"
         to: "$OPC_WORK_PATH/"
       - from: "../routing.yaml"
         to: "../../routing.yaml"
+      - from: "feedback.schema.json"
+        to: "../../feedback.schema.json"
 
 # ─── 章节处理规则 ───
 sections:

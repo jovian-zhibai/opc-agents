@@ -312,7 +312,6 @@ def main():
     if args.all:
         roles = list_prompt_roles()
         # 所有角色均已纳入单源生成（director 于 2026-08-28 纳入）
-        roles = [r for r in roles]
         print(f"批量生成 {len(roles)} 个角色:")
         results = []
         for role in roles:
