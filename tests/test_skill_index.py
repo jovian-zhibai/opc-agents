@@ -70,6 +70,9 @@ def test_name_hit_sorted_first(tmp_path):
 
 
 def test_no_match_hint(tmp_path):
+    # 先创建一个技能，确保存在 skill 目录（自包含，不依赖本机 ~/.claude 等真实目录），
+    # 再搜无关词 → 走"有目录但无匹配"分支，输出"未找到匹配"提示
+    _make_skill(tmp_path, "zzskill-existing", "Some real skill here")
     out = _run(tmp_path, "zzzz_not_a_skill")
     assert "未找到匹配" in out
 

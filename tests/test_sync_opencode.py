@@ -134,15 +134,20 @@ def test_sync_creates_backup(tmp_path):
         encoding="utf-8",
     )
 
-    _run(scripts_dir)
-
-    # 备份应写入 /tmp/opc-sync-backup-{role}-{section}.md（section 名去除中文后为 "hxian" 或含 ASCII）
     import glob
+
+    # 备份文件名 = /tmp/opc-sync-backup-{role}-{section去字母}.md。
+    # 注意："## 红线" 去非 a-zA-Z 后为空 → 固定文件名 opc-sync-backup-dev-.md，
+    # 重复运行会覆盖而非新增。备份语义是「同步前保留一份旧版可回滚」，
+    # 因此断言：该文件存在且内容为同步前的旧红线。
+    _run(scripts_dir)
 
     backups = glob.glob("/tmp/opc-sync-backup-dev-*")
     assert backups, "应生成备份文件"
     # 备份内容是同步前的旧内容
-    assert "旧红线" in open(backups[0], encoding="utf-8").read()
+    backup_content = open(backups[0], encoding="utf-8").read()
+    assert "旧红线" in backup_content
+    assert "新红线" not in backup_content
 
 
 # ---------- 5. 章节缺失：跳过 ----------
