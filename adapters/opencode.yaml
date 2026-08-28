@@ -1,6 +1,6 @@
 # OPC 运行时适配配置 — OpenCode
 # 此配置定义如何从 prompts/（唯一真相源）生成 OpenCode 运行时的 Agent 定义文件。
-# 生成器：scripts/generate-agents.sh --runtime=opencode
+# 生成器：scripts/generate-agents.py --runtime=opencode
 
 runtime: opencode
 name: OpenCode
