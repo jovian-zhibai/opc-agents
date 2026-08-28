@@ -338,6 +338,9 @@ def main():
     parser.add_argument("--all", action="store_true", help="批量生成所有角色（dry-run）")
     parser.add_argument("--write", action="store_true", help="直接写入目标文件（默认 dry-run）")
     parser.add_argument("--list", action="store_true", help="列出可用运行时")
+    parser.add_argument("--entry-block", help="入口文件标记块注入（如 CLAUDE.md），需配合 --section 使用")
+    parser.add_argument("--section", help="从 prompts/director.md 提取的节名（如 红线），配合 --entry-block 使用")
+    parser.add_argument("--block-type", default="markdown", choices=["markdown", "toml"], help="标记块类型（默认 markdown）")
     args = parser.parse_args()
 
     if args.list:
@@ -346,6 +349,56 @@ def main():
         for r in runtimes:
             config = load_adapter(r)
             print(f"  - {r}: {config.get('name', r)} — {config.get('description', '')}")
+        return
+
+    # --entry-block 模式：从 prompts/director.md 提取指定节并注入入口文件标记块
+    if args.entry_block:
+        if not args.section:
+            print("❌ --entry-block 需配合 --section 使用（如 --section 红线）", file=sys.stderr)
+            sys.exit(1)
+        entry_file = PROJECT_DIR / args.entry_block
+        if not entry_file.exists():
+            print(f"❌ 入口文件不存在: {entry_file}", file=sys.stderr)
+            sys.exit(1)
+        # 从 prompts/director.md 提取指定节
+        prompts_file = PROMPTS_DIR / "director.md"
+        with open(prompts_file, encoding="utf-8") as f:
+            content = f.read()
+        lines = content.split("\n")
+        start = None
+        end = None
+        section_header = f"## {args.section}"
+        for i, line in enumerate(lines):
+            if line.strip() == section_header:
+                start = i
+            elif start is not None and line.startswith("## ") and i > start:
+                end = i
+                break
+        if start is None:
+            print(f"❌ 在 prompts/director.md 中未找到节: {section_header}", file=sys.stderr)
+            sys.exit(1)
+        if end is None:
+            end = len(lines)
+        block_content = "\n".join(lines[start:end]).rstrip()
+        print(f"=== 入口文件标记块注入 ===")
+        print(f"    入口文件: {entry_file.relative_to(PROJECT_DIR)}")
+        print(f"    提取节: {section_header} ({len(block_content)} 字符)")
+        print(f"    标记块类型: {args.block_type}")
+        print(f"    模式: {'写入' if args.write else 'dry-run'}")
+        print()
+        result = inject_managed_block(entry_file, block_content, block_type=args.block_type, write=args.write)
+        if "error" in result:
+            print(f"❌ {result['error']}", file=sys.stderr)
+            sys.exit(1)
+        if args.write:
+            print(f"✅ 已写入标记块: {entry_file.relative_to(PROJECT_DIR)}")
+        else:
+            diff_count = result.get("diff_count", 0)
+            print(f"  标记块差异: {diff_count} 行")
+            if diff_count == 0:
+                print("✅ 标记块与 prompts/director.md 同步")
+            else:
+                print("⚠️  标记块与 prompts/director.md 不同步，需运行 --write 更新")
         return
 
     if not args.runtime:

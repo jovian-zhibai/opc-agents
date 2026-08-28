@@ -67,6 +67,22 @@ jobs:
           fi
           echo "✅ 所有运行时生成产物与 prompts/ 同步"
 
+      - name: Verify CLAUDE.md entry block is in sync with prompts/
+        run: |
+          # 从 prompts/director.md 红线节重新生成 CLAUDE.md 标记块，检查是否和仓库中一致
+          # 如果不一致，说明改了 prompts/ 红线但忘了同步 CLAUDE.md 标记块
+          pip3 install --quiet pyyaml
+          python3 scripts/generate-agents.py --entry-block CLAUDE.md --section 红线 --write
+          if ! git diff --quiet -- CLAUDE.md; then
+            echo "❌ CLAUDE.md 标记块与 prompts/director.md 红线节不同步！"
+            echo "   请在本地运行：python3 scripts/generate-agents.py --entry-block CLAUDE.md --section 红线 --write"
+            echo ""
+            echo "   差异详情："
+            git diff -- CLAUDE.md
+            exit 1
+          fi
+          echo "✅ CLAUDE.md 标记块与 prompts/director.md 红线节同步"
+
       - name: Run quality-gate
         run: bash scripts/quality-gate.sh
 
