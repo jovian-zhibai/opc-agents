@@ -437,8 +437,12 @@ SCAN_FILES=$(git ls-files --cached --others --exclude-standard 2>/dev/null |
 SECRET_HITS=""
 if [ -n "$SCAN_FILES" ]; then
   # 过滤掉含正则定义字面本身的命中（quality-gate.sh/ci.yml 等检查脚本正文含模式文本，属自引用误报）
-  SECRET_HITS=$(printf '%s\n' "$SCAN_FILES" | xargs grep -nE 'sk-[A-Za-z0-9]{20,}|SENSENOVA_API_KEY=.{5,}|api_key=["'"'"'][A-Za-z0-9_\-]{16,}["'"'"']|token=.{20,}' 2>/dev/null |
-    grep -vF -e 'sk-[A-Za-z0-9]{20,}' -e 'api_key=["'"'"'][A-Za-z0-9_\-]{16,}["'"'"']' -e 'token=.{20,}' -e 'SENSENOVA_API_KEY=.{5,}' \
+  # api_key 模式：必须带引号（" 或 '），内层 16+ 位 [A-Za-z0-9_+/=-]（覆盖字母数字/下划线/base64 的 +/=/连字符）。
+  # 连字符放字符类末尾避免 BSD grep 的范围解析问题（\- 在 BSD grep 中不被转义，会与后续字符形成无效范围）。
+  # 残余盲区：① 裸不带引号的 key（如 api_key=sk-xxx）靠 sk- 网兜底；② 含 . 的 JWT（如 api_key="eyJ...")靠 token 网兜底；
+  # ③ 含其他特殊字符（: @ # 等）的 key 不被本网捕获，需人工 review。
+  SECRET_HITS=$(printf '%s\n' "$SCAN_FILES" | xargs grep -nE 'sk-[A-Za-z0-9]{20,}|SENSENOVA_API_KEY=.{5,}|api_key=["'"'"'][A-Za-z0-9_+/=-]{16,}["'"'"']|token=.{20,}' 2>/dev/null |
+    grep -vF -e 'sk-[A-Za-z0-9]{20,}' -e 'api_key=["'"'"'][A-Za-z0-9_+/=-]{16,}["'"'"']' -e 'token=.{20,}' -e 'SENSENOVA_API_KEY=.{5,}' \
       -e 'sk-\[A-Za-z0-9\]\{20,\}' -e 'api_key=\.\{10,\}' -e 'token=\.\{20,\}' -e 'SENSENOVA_API_KEY=\.\{5,\}' || true)
 fi
 if [ -n "$SECRET_HITS" ]; then
