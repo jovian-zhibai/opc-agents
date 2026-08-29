@@ -95,3 +95,25 @@ python3 benchmark/run_advisor_benchmark.py --variant trimmed --runs 3
 - 实际已回填的版本是"选择性精简版"（只砍决策矩阵），见 commit 8c8e8c4
 - 测试需要花钱（SenseNova API 调用），请确认预算后再跑
 - `results/` 目录为一次性测试数据，不入库（gitignore）
+
+---
+
+## 结构化通信实验（已评估 · 不采纳）
+
+> **结论：维持现状自由交接，不引入结构化交接格式。** 详见 [docs/design-structured-comms.md](../docs/design-structured-comms.md)。
+
+实验：A（现状自由）/ B（prose 强制）/ C（结构化块）三臂对比，三臂共享完整 `prompts/dev.md` 底座，唯一差别 = 追加的交接格式。3 个真实任务 × 3 臂 × 2 次 = 18 次，SenseNova 6.7-flash-lite，盲评。
+
+结果：三臂 0 编造、信息完整性打平（task2/task3），task1 差距系无工具环境 confound。B/C 为加复杂度改动，未明显超过 A → 维持 A。
+
+### v2 脚手架文件
+
+| 文件 | 说明 |
+|------|------|
+| `tasks-v2.md` | 3 个真实任务定义（带 PRD 的功能实现 / 带报错日志的 bug 修复 / 上游产出传递） |
+| `dev-b-prose-v2.md` | B 臂追加段（prose 强制字段，事实字段必填/判断字段可选禁止编造） |
+| `dev-c-schema-v2.md` | C 臂追加段（结构化块 `## 结果交接 v2`，同字段两类划分） |
+| `run_real_tasks_v2.py` | 跑三臂对比的 harness（A/B/C × 3 任务 × N 次，不自动判分） |
+| `results/` | 测试结果输出目录（gitignore，不入库） |
+
+> 注：v1 编造探针（`run_fabrication_probe.py` 及弃权陷阱任务）因方法论缺陷已作废——把"模型基于有限信息做出合理推断"误记为"编造"。v2 改用真实任务，结论以 v2 为准。
