@@ -48,9 +48,16 @@ def isolated_env(tmp_path, monkeypatch):
     }
 
 
-def _write_state_json(state_file, tasks):
-    """写入模拟的 state.json。"""
-    state_file.write_text(json.dumps({"tasks": tasks}, ensure_ascii=False), encoding="utf-8")
+def _write_state_json(state_file, current_task=None):
+    """写入模拟的 state.json（state-manager 真实结构）。
+
+    真实结构：{"events": [...], "current_task": {name, current_stage, progress, artifact, updated_at} | None, "history": [...]}
+    current_task=None 表示无活跃任务。
+    """
+    state_file.write_text(
+        json.dumps({"events": [], "current_task": current_task, "history": []}, ensure_ascii=False),
+        encoding="utf-8",
+    )
 
 
 def _write_session_notes(session_notes, lines):
@@ -69,9 +76,10 @@ def _write_search_script(search_script, output="模拟教训内容"):
 class TestSessionStartMode:
     def test_with_unfinished_tasks_and_notes(self, isolated_env):
         """有未完成任务 + session-notes → 含中断恢复+会话引导+流程提醒。"""
-        _write_state_json(isolated_env["state_file"], [
-            {"name": "任务A", "current_phase": "开发", "status": "in_progress"},
-        ])
+        _write_state_json(isolated_env["state_file"], {
+            "name": "任务A", "current_stage": "开发", "progress": "50%",
+            "artifact": None, "updated_at": "2026-08-28T12:00:00",
+        })
         _write_session_notes(isolated_env["session_notes"], [
             "[2026-08-28] 上次干到登录功能接口",
             "[2026-08-27] 注意数据库连接串别写错",
@@ -86,10 +94,8 @@ class TestSessionStartMode:
         assert "【流程提醒】" in result
 
     def test_without_unfinished_tasks(self, isolated_env):
-        """无未完成任务 → 含会话引导+流程提醒，不含中断恢复。"""
-        _write_state_json(isolated_env["state_file"], [
-            {"name": "已完成任务", "status": "completed"},
-        ])
+        """无未完成任务（current_task=None）→ 含会话引导+流程提醒，不含中断恢复。"""
+        _write_state_json(isolated_env["state_file"], None)
         _write_session_notes(isolated_env["session_notes"], ["[2026-08-28] 测试记录"])
 
         result = hook.generate_context("", "session_start")
@@ -100,7 +106,7 @@ class TestSessionStartMode:
 
     def test_no_session_notes(self, isolated_env):
         """无 session-notes → 含流程提醒，不含会话引导。"""
-        _write_state_json(isolated_env["state_file"], [])
+        _write_state_json(isolated_env["state_file"], None)
 
         result = hook.generate_context("", "session_start")
 
@@ -178,9 +184,10 @@ class TestUserPromptMode:
 class TestAutoMode:
     def test_with_prompt_goes_user_prompt(self, isolated_env):
         """有 prompt≥4 字 → 走 user_prompt（含流程提醒，无中断恢复）。"""
-        _write_state_json(isolated_env["state_file"], [
-            {"name": "任务A", "current_phase": "开发", "status": "in_progress"},
-        ])
+        _write_state_json(isolated_env["state_file"], {
+            "name": "任务A", "current_stage": "开发", "progress": "50%",
+            "artifact": None, "updated_at": "2026-08-28T12:00:00",
+        })
         _write_session_notes(isolated_env["session_notes"], ["[2026-08-28] 测试"])
 
         result = hook.generate_context("帮我写登录功能", "auto")
@@ -192,9 +199,10 @@ class TestAutoMode:
 
     def test_without_prompt_goes_session_start(self, isolated_env):
         """无 prompt → 走 session_start（含中断恢复+会话引导+流程提醒）。"""
-        _write_state_json(isolated_env["state_file"], [
-            {"name": "任务A", "current_phase": "开发", "status": "in_progress"},
-        ])
+        _write_state_json(isolated_env["state_file"], {
+            "name": "任务A", "current_stage": "开发", "progress": "50%",
+            "artifact": None, "updated_at": "2026-08-28T12:00:00",
+        })
         _write_session_notes(isolated_env["session_notes"], ["[2026-08-28] 测试"])
 
         result = hook.generate_context("", "auto")

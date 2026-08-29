@@ -106,27 +106,24 @@ def read_session_notes(session_notes_path):
 
 
 def check_unfinished_tasks(state_file_path):
-    """检查未完成任务（中断恢复）。读 state.json，返回未完成任务摘要。"""
+    """检查未完成任务（中断恢复）。读 state.json，返回未完成任务摘要。
+
+    state.json 真实结构（scripts/state-manager.py 写入）：
+      {"events": [...], "current_task": {name, current_stage, progress, artifact, updated_at} | None, "history": [...]}
+    活跃任务是单对象 current_task，无 tasks[] 数组、无 status 字段。
+    """
     try:
         if not os.path.exists(state_file_path):
             return ""
         import json as _json
         with open(state_file_path, encoding="utf-8") as f:
             state = _json.load(f)
-        # state.json 结构：{tasks: [{id, name, status, current_phase, ...}]}
-        tasks = state.get("tasks", [])
-        unfinished = [
-            t for t in tasks
-            if t.get("status") not in ("completed", "cancelled", "archived")
-        ]
-        if not unfinished:
+        task = state.get("current_task")
+        if not task or not isinstance(task, dict):
             return ""
-        lines = []
-        for t in unfinished[:5]:
-            name = t.get("name", t.get("id", "未知任务"))
-            phase = t.get("current_phase", t.get("phase", "未知阶段"))
-            lines.append(f"  - {name}（当前阶段：{phase}）")
-        return "\n".join(lines)
+        name = task.get("name", "未知任务")
+        stage = task.get("current_stage") or task.get("phase") or "未知阶段"
+        return f"  - {name}（当前阶段：{stage}）"
     except Exception:
         return ""
 
