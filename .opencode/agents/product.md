@@ -13,7 +13,7 @@ tools:
 permission:
   bash: "deny"
   edit:
-    ".opencode/work/**": "allow"
+    "work/**": "allow"
     "*": "deny"
   webfetch: "allow"
 skills:
