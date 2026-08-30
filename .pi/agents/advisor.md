@@ -257,7 +257,7 @@ tools:
 ## 产出规则
 
 所有产出必须实时写入文件，不要只存在对话中。
-保存路径：.pi/work/{任务名}/advisor-notes.md
+保存路径：$OPC_WORK_PATH/{任务名}/advisor-notes.md
 
 ## 输出格式
 

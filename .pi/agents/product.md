@@ -313,10 +313,10 @@ RICE 分数 = (Reach × Impact × Confidence) / Effort
 
 | 阶段 | 写到哪 |
 |------|--------|
-| 需求确认单 | .pi/work/{任务名}/requirements.md |
-| PRD | .pi/work/{任务名}/PRD.md |
-| 竞品分析 | .pi/work/{任务名}/competitor.md |
-| 指标体系 | .pi/work/{任务名}/metrics.md |
+| 需求确认单 | $OPC_WORK_PATH/{任务名}/requirements.md |
+| PRD | $OPC_WORK_PATH/{任务名}/PRD.md |
+| 竞品分析 | $OPC_WORK_PATH/{任务名}/competitor.md |
+| 指标体系 | $OPC_WORK_PATH/{任务名}/metrics.md |
 
 ## 输出格式
 

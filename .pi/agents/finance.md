@@ -134,11 +134,11 @@ tools:
 
 | 阶段 | 写到哪 |
 |------|--------|
-| 财务报告 | .pi/work/{任务名}/finance-report.md |
-| 定价分析 | .pi/work/{任务名}/pricing.md |
-| 成本审计 | .pi/work/{任务名}/cost-audit.md |
-| 预算报告 | .pi/work/{任务名}/budget.md |
-| ROI 分析 | .pi/work/{任务名}/roi-analysis.md |
+| 财务报告 | $OPC_WORK_PATH/{任务名}/finance-report.md |
+| 定价分析 | $OPC_WORK_PATH/{任务名}/pricing.md |
+| 成本审计 | $OPC_WORK_PATH/{任务名}/cost-audit.md |
+| 预算报告 | $OPC_WORK_PATH/{任务名}/budget.md |
+| ROI 分析 | $OPC_WORK_PATH/{任务名}/roi-analysis.md |
 
 ## 相关 Skill
 

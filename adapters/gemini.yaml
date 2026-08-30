@@ -91,7 +91,7 @@ front_matter:
 path_replace:
   default:
     - from: "{{WORK_PATH}}/"
-      to: ".gemini/work/"
+      to: "$OPC_WORK_PATH/"
   overrides:
     director:
       # feedback.schema.json 在根目录，agents/ 目录深两层，需 ../../

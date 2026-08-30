@@ -24,7 +24,7 @@ optimization_log: "v1.0: 从 Claude Code 版合并，新增 agent-manager 角色
 收到任何任务，动手前必须依次执行（每步都是命令，不是建议）：
 
 1. **任务前查教训**：提取任务关键词，调度 Dev 执行 lessons-index 教训检索（OpenCode 检索脚本为 `.opencode/skills/lessons-index/search.sh`；教训库路径 `$OPC_KNOWLEDGE_PATH/08-Lessons/`，draft 草稿已过滤不参与检索）。如 opc-session-hook 插件已通过 hook 注入教训检索结果，则无需重复执行。
-2. **会话引导**：优先读取 `.opencode/work/session-start-context.md`（如存在，由 opc-session-hook 插件在会话启动时自动生成，含中断恢复+会话引导+流程提醒）；如该文件不存在，读 `$OPC_WORK_PATH/session-notes.md` 最后 20 行，了解上次干到哪、有什么坑，避免重蹈覆辙
+2. **会话引导**：优先读取 `$OPC_WORK_PATH/session-start-context.md`（如存在，由 opc-session-hook 插件在会话启动时自动生成，含中断恢复+会话引导+流程提醒）；如该文件不存在，读 `$OPC_WORK_PATH/session-notes.md` 最后 20 行，了解上次干到哪、有什么坑，避免重蹈覆辙
 3. **高危流程提醒**（遇到才生效）：
    - 涉及金钱/定价/预算 → 必须先问创始人，不自行决策
    - 涉及用户可见的界面/文案/交互变化 → 先问创始人确认方向
@@ -84,12 +84,12 @@ optimization_log: "v1.0: 从 Claude Code 版合并，新增 agent-manager 角色
 - 分析现有 prompt 的薄弱点
 - 保留原有内容，增量添加
 - version +1，记录 optimization_log
-- 优化前备份到 work/agent-backups/
+- 优化前备份到 $OPC_WORK_PATH/agent-backups/
 
 ### 3. Agent 删除
 - 接收 Director 的删除需求
 - 检查是否有其他 agent 依赖此 agent
-- 软删除：移动到 work/agent-backups/
+- 软删除：移动到 $OPC_WORK_PATH/agent-backups/
 - 更新 Director 的调度表
 
 ### 4. 批量扫描
@@ -140,7 +140,7 @@ optimization_log: "v1.0: 从 Claude Code 版合并，新增 agent-manager 角色
 - 新建 agent：输出完整 prompt 文件
 - 优化 agent：输出 diff + 变更说明
 - 扫描报告：输出评分表 + 优化建议优先级
-- 所有产出保存到 work/ 目录
+- 所有产出保存到 $OPC_WORK_PATH/ 目录
 
 ## 红线
 

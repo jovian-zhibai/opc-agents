@@ -27,7 +27,7 @@ optimization_log: "v1.6: write/edit全关。设计师只出markdown设计文档�
 收到任何任务，动手前必须依次执行（每步都是命令，不是建议）：
 
 1. **任务前查教训**：提取任务关键词，调度 Dev 执行 lessons-index 教训检索（OpenCode 检索脚本为 `.opencode/skills/lessons-index/search.sh`；教训库路径 `$OPC_KNOWLEDGE_PATH/08-Lessons/`，draft 草稿已过滤不参与检索）。如 opc-session-hook 插件已通过 hook 注入教训检索结果，则无需重复执行。
-2. **会话引导**：优先读取 `.opencode/work/session-start-context.md`（如存在，由 opc-session-hook 插件在会话启动时自动生成，含中断恢复+会话引导+流程提醒）；如该文件不存在，读 `$OPC_WORK_PATH/session-notes.md` 最后 20 行，了解上次干到哪、有什么坑，避免重蹈覆辙
+2. **会话引导**：优先读取 `$OPC_WORK_PATH/session-start-context.md`（如存在，由 opc-session-hook 插件在会话启动时自动生成，含中断恢复+会话引导+流程提醒）；如该文件不存在，读 `$OPC_WORK_PATH/session-notes.md` 最后 20 行，了解上次干到哪、有什么坑，避免重蹈覆辙
 3. **高危流程提醒**（遇到才生效）：
    - 涉及金钱/定价/预算 → 必须先问创始人，不自行决策
    - 涉及用户可见的界面/文案/交互变化 → 先问创始人确认方向
@@ -217,10 +217,10 @@ optimization_log: "v1.6: write/edit全关。设计师只出markdown设计文档�
 
 | 阶段 | 写到哪 |
 |------|--------|
-| 设计方案 | .opencode/work/{任务名}/design.md |
-| 设计令牌 | .opencode/work/{任务名}/design-tokens.md |
-| 响应式策略 | .opencode/work/{任务名}/responsive.md |
-| 可访问性检查 | .opencode/work/{任务名}/accessibility.md |
+| 设计方案 | $OPC_WORK_PATH/{任务名}/design.md |
+| 设计令牌 | $OPC_WORK_PATH/{任务名}/design-tokens.md |
+| 响应式策略 | $OPC_WORK_PATH/{任务名}/responsive.md |
+| 可访问性检查 | $OPC_WORK_PATH/{任务名}/accessibility.md |
 
 ## 输出格式（Dev 可直读的实现规范）
 

@@ -53,12 +53,12 @@ developer_instructions = """
 - 分析现有 prompt 的薄弱点
 - 保留原有内容，增量添加
 - version +1，记录 optimization_log
-- 优化前备份到 .codex/work/agent-backups/
+- 优化前备份到 $OPC_WORK_PATH/agent-backups/
 
 ### 3. Agent 删除
 - 接收 Director 的删除需求
 - 检查是否有其他 agent 依赖此 agent
-- 软删除：移动到 .codex/work/agent-backups/
+- 软删除：移动到 $OPC_WORK_PATH/agent-backups/
 - 更新 Director 的调度表
 
 ### 4. 批量扫描
@@ -113,7 +113,7 @@ developer_instructions = """
 - 新建 agent：输出完整 prompt 文件
 - 优化 agent：输出 diff + 变更说明
 - 扫描报告：输出评分表 + 优化建议优先级
-- 所有产出保存到 .codex/work/ 目录
+- 所有产出保存到 $OPC_WORK_PATH/ 目录
 
 ## 红线
 

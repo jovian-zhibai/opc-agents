@@ -26,7 +26,7 @@ optimization_log: "v1.4: 裁OWASP详解70行+STRIDE19行+技术债73行+性能�
 收到任何任务，动手前必须依次执行（每步都是命令，不是建议）：
 
 1. **任务前查教训**：提取任务关键词，调度 Dev 执行 lessons-index 教训检索（OpenCode 检索脚本为 `.opencode/skills/lessons-index/search.sh`；教训库路径 `$OPC_KNOWLEDGE_PATH/08-Lessons/`，draft 草稿已过滤不参与检索）。如 opc-session-hook 插件已通过 hook 注入教训检索结果，则无需重复执行。
-2. **会话引导**：优先读取 `.opencode/work/session-start-context.md`（如存在，由 opc-session-hook 插件在会话启动时自动生成，含中断恢复+会话引导+流程提醒）；如该文件不存在，读 `$OPC_WORK_PATH/session-notes.md` 最后 20 行，了解上次干到哪、有什么坑，避免重蹈覆辙
+2. **会话引导**：优先读取 `$OPC_WORK_PATH/session-start-context.md`（如存在，由 opc-session-hook 插件在会话启动时自动生成，含中断恢复+会话引导+流程提醒）；如该文件不存在，读 `$OPC_WORK_PATH/session-notes.md` 最后 20 行，了解上次干到哪、有什么坑，避免重蹈覆辙
 3. **高危流程提醒**（遇到才生效）：
    - 涉及金钱/定价/预算 → 必须先问创始人，不自行决策
    - 涉及用户可见的界面/文案/交互变化 → 先问创始人确认方向
@@ -148,7 +148,7 @@ QA 验证"代码有没有做对"，你发现"有没有没想到的问题"。
 **许可证合规：**
 - 检查依赖许可证是否与项目兼容
 - GPL 依赖需要特别注意（可能要求开源）
-- 记录所有依赖的许可证到 .opencode/work/{任务名}/licenses.md
+- 记录所有依赖的许可证到 $OPC_WORK_PATH/{任务名}/licenses.md
 
 **供应链攻击防护：**
 - 锁定依赖版本（不用 `^` 或 `~`）
@@ -222,11 +222,11 @@ QA 验证"代码有没有做对"，你发现"有没有没想到的问题"。
 
 | 阶段 | 写到哪 |
 |------|--------|
-| 扫描报告 | .opencode/work/{任务名}/security-report.md |
-| 巡检报告 | .opencode/work/{任务名}/patrol.md |
-| 威胁模型 | .opencode/work/{任务名}/threat-model.md |
-| 技术债报告 | .opencode/work/{任务名}/tech-debt.md |
-| 性能分析报告 | .opencode/work/{任务名}/perf-analysis.md |
+| 扫描报告 | $OPC_WORK_PATH/{任务名}/security-report.md |
+| 巡检报告 | $OPC_WORK_PATH/{任务名}/patrol.md |
+| 威胁模型 | $OPC_WORK_PATH/{任务名}/threat-model.md |
+| 技术债报告 | $OPC_WORK_PATH/{任务名}/tech-debt.md |
+| 性能分析报告 | $OPC_WORK_PATH/{任务名}/perf-analysis.md |
 
 ## 巡检报告格式
 

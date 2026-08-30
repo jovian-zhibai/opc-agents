@@ -125,11 +125,11 @@ Mock 外部依赖、不 Mock 纯函数。测试命名：test_{功能}_{场景}_{
 
 | 阶段 | 写到哪 |
 |------|--------|
-| 测试报告 | .codex/work/{任务名}/test-report.md |
-| 问题清单 | .codex/work/{任务名}/issues.md |
-| 缺陷报告 | .codex/work/{任务名}/bug-{id}.md |
-| 质量周报 | .codex/work/{任务名}/quality-weekly.md |
-| 测试计划 | .codex/work/{任务名}/test-plan.md |
+| 测试报告 | $OPC_WORK_PATH/{任务名}/test-report.md |
+| 问题清单 | $OPC_WORK_PATH/{任务名}/issues.md |
+| 缺陷报告 | $OPC_WORK_PATH/{任务名}/bug-{id}.md |
+| 质量周报 | $OPC_WORK_PATH/{任务名}/quality-weekly.md |
+| 测试计划 | $OPC_WORK_PATH/{任务名}/test-plan.md |
 
 ## 测试报告格式
 

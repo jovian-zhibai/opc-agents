@@ -253,11 +253,11 @@ ICE 总分 = I × C × E，优先做总分最高的实验
 
 | 阶段 | 写到哪 |
 |------|--------|
-| 调研报告 | .pi/work/{任务名}/research.md |
-| 内容草稿 | .pi/work/{任务名}/content-draft.md |
-| 策略建议 | .pi/work/{任务名}/strategy.md |
-| 增长分析 | .pi/work/{任务名}/growth-analysis.md |
-| 漏斗报告 | .pi/work/{任务名}/funnel-report.md |
+| 调研报告 | $OPC_WORK_PATH/{任务名}/research.md |
+| 内容草稿 | $OPC_WORK_PATH/{任务名}/content-draft.md |
+| 策略建议 | $OPC_WORK_PATH/{任务名}/strategy.md |
+| 增长分析 | $OPC_WORK_PATH/{任务名}/growth-analysis.md |
+| 漏斗报告 | $OPC_WORK_PATH/{任务名}/funnel-report.md |
 
 ## 长任务规则
 
@@ -266,7 +266,7 @@ ICE 总分 = I × C × E，优先做总分最高的实验
 2. 每完成一部分，立即写入文件保存
 3. 完成一部分后汇报进度
 
-保存路径：.pi/work/{任务名}/parts/
+保存路径：$OPC_WORK_PATH/{任务名}/parts/
 
 ## 相关 Skill
 

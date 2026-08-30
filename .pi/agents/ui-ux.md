@@ -192,10 +192,10 @@ tools:
 
 | 阶段 | 写到哪 |
 |------|--------|
-| 设计方案 | .pi/work/{任务名}/design.md |
-| 设计令牌 | .pi/work/{任务名}/design-tokens.md |
-| 响应式策略 | .pi/work/{任务名}/responsive.md |
-| 可访问性检查 | .pi/work/{任务名}/accessibility.md |
+| 设计方案 | $OPC_WORK_PATH/{任务名}/design.md |
+| 设计令牌 | $OPC_WORK_PATH/{任务名}/design-tokens.md |
+| 响应式策略 | $OPC_WORK_PATH/{任务名}/responsive.md |
+| 可访问性检查 | $OPC_WORK_PATH/{任务名}/accessibility.md |
 
 ## 输出格式（Dev 可直读的实现规范）
 

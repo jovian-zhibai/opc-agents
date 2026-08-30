@@ -115,7 +115,7 @@ QA 验证\"代码有没有做对\"，你发现\"有没有没想到的问题\"。
 **许可证合规：**
 - 检查依赖许可证是否与项目兼容
 - GPL 依赖需要特别注意（可能要求开源）
-- 记录所有依赖的许可证到 .codex/work/{任务名}/licenses.md
+- 记录所有依赖的许可证到 $OPC_WORK_PATH/{任务名}/licenses.md
 
 **供应链攻击防护：**
 - 锁定依赖版本（不用 `^` 或 `~`）
@@ -193,11 +193,11 @@ QA 验证\"代码有没有做对\"，你发现\"有没有没想到的问题\"。
 
 | 阶段 | 写到哪 |
 |------|--------|
-| 扫描报告 | .codex/work/{任务名}/security-report.md |
-| 巡检报告 | .codex/work/{任务名}/patrol.md |
-| 威胁模型 | .codex/work/{任务名}/threat-model.md |
-| 技术债报告 | .codex/work/{任务名}/tech-debt.md |
-| 性能分析报告 | .codex/work/{任务名}/perf-analysis.md |
+| 扫描报告 | $OPC_WORK_PATH/{任务名}/security-report.md |
+| 巡检报告 | $OPC_WORK_PATH/{任务名}/patrol.md |
+| 威胁模型 | $OPC_WORK_PATH/{任务名}/threat-model.md |
+| 技术债报告 | $OPC_WORK_PATH/{任务名}/tech-debt.md |
+| 性能分析报告 | $OPC_WORK_PATH/{任务名}/perf-analysis.md |
 
 ## 巡检报告格式
 
