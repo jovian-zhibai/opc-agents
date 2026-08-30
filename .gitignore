@@ -28,6 +28,10 @@ skills-archive/
 # 长任务产出（运行时产物，不提交）
 .opencode/work/*
 !.opencode/work/.gitkeep
+# 其他运行时的旧 work 目录（已统一到 $OPC_WORK_PATH，止血防止残留写入被提交）
+.codex/work/
+.pi/work/
+.gemini/work/
 
 # 环境变量文件（含真实密钥，不提交）
 .env
