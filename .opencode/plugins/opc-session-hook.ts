@@ -4,7 +4,7 @@
  * 订阅 session.created 事件，在会话启动时执行：
  *   1. 调用共享核心 scripts/opc_session_hook.py（五运行时通用）
  *   2. 获取注入上下文（中断恢复 + 会话引导 + 流程提醒）
- *   3. 将上下文写入 .opencode/work/session-start-context.md
+ *   3. 将上下文写入 $OPC_WORK_PATH/session-start-context.md（默认=仓库根 work/）
  *   4. 通过 client.app.log() 记录日志
  *
  * 与其他运行时的区别：
@@ -30,10 +30,11 @@ export const OpcSessionHook: Plugin = async ({
   worktree,
 }) => {
   const projectDir = directory || worktree || process.cwd()
-  const contextFile = join(projectDir, ".opencode", "work", "session-start-context.md")
+  // 统一产出物目录：$OPC_WORK_PATH（默认=仓库根 work/），与五运行时适配器一致
+  const workDir = process.env.OPC_WORK_PATH || join(projectDir, "work")
+  const contextFile = join(workDir, "session-start-context.md")
 
   // 确保目录存在
-  const workDir = join(projectDir, ".opencode", "work")
   if (!existsSync(workDir)) {
     try {
       mkdirSync(workDir, { recursive: true })
