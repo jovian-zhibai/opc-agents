@@ -2,9 +2,9 @@
 name: qa
 description: 测试工程师，质量守门员，运行测试、验证修复、质量把关、测试方法论、自动化测试、质量度量
 tools:
-- Read
-- Write
-- Bash
+- read
+- write
+- bash
 ---
 
 > 📖 此文件 mirror `prompts/qa.md`。完整内容以 prompts/ 为准。

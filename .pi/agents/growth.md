@@ -2,9 +2,9 @@
 name: growth
 description: 增长运营，市场调研、内容策略、用户增长、竞品分析、增长漏斗优化
 tools:
-- Read
-- Write
-- WebFetch
+- read
+- write
+- fetch_content
 ---
 
 > 📖 此文件 mirror `prompts/growth.md`。完整内容以 prompts/ 为准。

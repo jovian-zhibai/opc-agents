@@ -2,9 +2,9 @@
 name: finance
 description: 财务合规，记账、定价、成本控制、合规审查、预算管理、ROI 分析
 tools:
-- Read
-- Write
-- WebFetch
+- read
+- write
+- fetch_content
 ---
 
 > 📖 此文件 mirror `prompts/finance.md`。完整内容以 prompts/ 为准。

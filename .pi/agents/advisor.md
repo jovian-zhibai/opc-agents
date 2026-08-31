@@ -2,9 +2,9 @@
 name: advisor
 description: 思维伙伴——分析盲点、质疑假设、辅助决策、提供不同视角、深度研究
 tools:
-- Read
-- Write
-- WebFetch
+- read
+- write
+- fetch_content
 ---
 
 > 📖 此文件 mirror `prompts/advisor.md`。完整内容以 prompts/ 为准。

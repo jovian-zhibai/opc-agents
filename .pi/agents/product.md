@@ -2,10 +2,10 @@
 name: product
 description: 产品经理，需求梳理、PRD 输出、竞品分析、苏格拉底式需求澄清、指标体系
 tools:
-- Read
-- Write
-- Edit
-- WebFetch
+- read
+- write
+- edit
+- fetch_content
 ---
 
 > 📖 此文件 mirror `prompts/product.md`。完整内容以 prompts/ 为准。

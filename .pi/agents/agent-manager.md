@@ -2,9 +2,9 @@
 name: agent-manager
 description: OPC Agent 管理者，负责 Agent 全生命周期管理、质量评估、创建优化
 tools:
-- Read
-- Edit
-- Write
+- read
+- edit
+- write
 ---
 
 > 📖 此文件 mirror `prompts/agent-manager.md`。完整内容以 prompts/ 为准。

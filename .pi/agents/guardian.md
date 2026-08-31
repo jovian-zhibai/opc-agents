@@ -2,10 +2,10 @@
 name: guardian
 description: 风险哨兵，安全扫描、代码级安全审查、技术债识别、性能分析、定期巡检、OWASP 审查、威胁建模
 tools:
-- Read
-- Write
-- Bash
-- WebFetch
+- read
+- write
+- bash
+- fetch_content
 ---
 
 > 📖 此文件 mirror `prompts/guardian.md`。完整内容以 prompts/ 为准。

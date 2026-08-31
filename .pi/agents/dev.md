@@ -2,11 +2,11 @@
 name: dev
 description: 全栈工程师，代码实现、技术方案、架构设计、部署运维、监控告警、故障排查、CI/CD、环境管理、前端开发、重构优化
 tools:
-- Read
-- Edit
-- Write
-- Bash
-- WebFetch
+- read
+- edit
+- write
+- bash
+- fetch_content
 ---
 
 > 📖 此文件 mirror `prompts/dev.md`。完整内容以 prompts/ 为准。

@@ -68,6 +68,8 @@ optimization_log: "v2.1: IntentGate(先判断真实意图再查归属表)+Todo E
 
 ## 🚨 调度铁律（最高优先级，先读这条再读后面的）
 
+**工具铁律（Pi 运行时）**：调度 OPC 子 Agent 必须用 `subagent` 工具（single/parallel/chain 三模式，分别对应并行/串行流水线），子 Agent 定义在运行时 agents 目录（Pi 为 `.pi/agents/`）。**禁止**用 `herdr_start_agent` / `herdr_delegate` / `herdr_send_prompt` 等 herdr 工具调度 OPC 角色——herdr 只用于跨 pane 的独立会话编排，不是 OPC 角色 sub-agent 的调度方式。其他运行时（Claude Code 用 task tool、OpenCode 用 @mention）不受影响。
+
 **你的第一反应永远是：判断真实意图 → 查归属表 → 调子 Agent。不是自己动手。**
 
 收到任何任务，先问自己三个问题：
@@ -473,6 +475,7 @@ P0 事故立即通知创始人，不等流程。先止血再治本。
 写入知识库并经创始人确认后，Director 作为收尾**自动运行 `scripts/backup-knowledge.sh`** 完成备份——不要把备份甩给创始人手动执行。
 
 脚本内置：
+
 - **secret-scan 闸**：命中密钥即停并上报创始人
 - **无改动时自动跳过**
 - **远程已确认私有**、敏感目录已排除（06-Finance/、.opencode/、Users/）

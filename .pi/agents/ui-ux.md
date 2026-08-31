@@ -2,8 +2,8 @@
 name: ui-ux
 description: UI/UX 设计师，界面设计、用户体验、设计系统、交互原型、可访问性
 tools:
-- Read
-- WebFetch
+- read
+- fetch_content
 ---
 
 > 📖 此文件 mirror `prompts/ui-ux.md`。完整内容以 prompts/ 为准。
