@@ -11,8 +11,9 @@
  * 本扩展只做 Pi extension API 适配（before_agent_start → message 注入）。
  *
  * 安装：
- *   1. 复制本文件到 ~/.pi/agent/extensions/opc-session-hook.ts
- *   2. 修改 PROJECT_DIR 为你的 opc-agents 项目路径（或设置 OPC_AGENTS_PATH 环境变量）
+ *   1. 本文件位于项目 `.pi/extensions/`，Pi 启动时项目级自动加载（loader 合并 cwd/.pi/extensions + 全局）。
+ *      不要复制到 ~/.pi/agent/extensions/（全局）——那会导致所有项目都触发本 hook。
+ *   2. PROJECT_DIR 默认为 ~/code/opc/opc-agents，可用 OPC_AGENTS_PATH 环境变量覆盖
  *   3. 重启 Pi
  *
  * 降级：任何一步失败都静默跳过，不影响正常流程。

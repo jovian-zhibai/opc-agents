@@ -158,7 +158,7 @@ OpenCode 的 agent front matter 声明了若干 skill（如 anysearch、multi-se
 |---|---|---|---|---|---|
 | **Claude Code** | 原生 hooks | SessionStart + UserPromptSubmit | `.claude/settings.json` | `.claude/hooks/lessons-prompt.py` | (a) 真 hook |
 | **OpenCode** | 插件系统 | session.created | `.opencode/plugins/opc-session-hook.ts` | 同左（TypeScript 插件） | (b) 插件间接实现 |
-| **Pi** | extension API | before_agent_start | 模板 `.pi/extensions/opc-session-hook.ts` | 复制到 `~/.pi/agent/extensions/` | (a) 真 hook |
+| **Pi** | extension API | before_agent_start | 项目级 `.pi/extensions/opc-session-hook.ts` | 同左（项目级自动加载，**勿复制到全局** `~/.pi/agent/extensions/`，否则所有项目都触发） | (a) 真 hook |
 | **Gemini CLI** | 原生 hooks | SessionStart | `.gemini/settings.json` | `.gemini/hooks/session-start.py` | (a) 真 hook |
 | **Codex CLI** | 原生 hooks | SessionStart | `.codex/hooks.json` | `.codex/hooks/session-start.py` | (a) 真 hook |
 
@@ -198,7 +198,7 @@ adapters/                  运行时适配配置（声明式转换规则）
 └── settings.json          hook 配置（SessionStart/UserPromptSubmit/PreToolUse）
 .pi/                       Pi 运行时产物
 ├── agents/                10 个 Agent 定义（生成器生成）
-└── extensions/           Pi extension 模板（opc-session-hook.ts，复制到 ~/.pi/agent/extensions/）
+└── extensions/           Pi extension（opc-session-hook.ts，项目级自动加载，勿复制到全局）
 .gemini/                   Gemini 运行时产物
 ├── agents/                10 个 Agent 定义（生成器生成）
 ├── hooks/                 Gemini hooks（session-start.py 会话启动自动检查）
