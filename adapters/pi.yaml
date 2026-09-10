@@ -125,11 +125,11 @@ source_preprocess:
 director_entry:
       file: .pi/SYSTEM.md
       type: markdown
-      # Pi 的 Director 入口是 .pi/SYSTEM.md，从 .pi/agents/director.md（生成物）派生。
-      # 改 prompts/ 后重建：先跑生成器，再从 .pi/agents/director.md 去掉 front matter、
-      # 修正相对链接（../ → ../../）并保留文末「Pi 运行时说明」节。
+      # Pi 的 Director 入口 .pi/SYSTEM.md 由生成器从 .pi/agents/director.md（生成物）派生：
+      # 去 front matter/mirror 行、相对链接层级 +1、拼运行时换算表。
+      # 改 prompts/director.md 后：generate-agents.py --runtime=pi --all --write 一并更新。
       # 仓库根另有 AGENTS.override.md（抢占 CLAUDE.md 的上下文加载位，勿删）。
-      source: manual
+      source: derived
 
 # ─── 调度方式 ───
 scheduling:

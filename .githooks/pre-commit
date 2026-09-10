@@ -26,8 +26,8 @@ if echo "$STAGED" | grep -qE "$GEN_PATTERN"; then
         fi
     done
 
-    # 添加生成产物到暂存区
-    git add .opencode/agents/ .claude/agents/ .pi/agents/ .gemini/agents/ .codex/agents/ 2>/dev/null || true
+    # 添加生成产物到暂存区（.pi/SYSTEM.md：Pi Director 入口，随 pi 再生派生更新）
+    git add .opencode/agents/ .claude/agents/ .pi/agents/ .pi/SYSTEM.md .gemini/agents/ .codex/agents/ 2>/dev/null || true
 
     echo "✅ 自动生成完成，生成产物已添加到暂存区"
 fi

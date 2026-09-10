@@ -14,6 +14,9 @@
 """
 
 import argparse
+import copy
+import difflib
+import io
 import re
 import sys
 from pathlib import Path
@@ -206,6 +209,98 @@ def inject_managed_block(entry_file: Path, block_content: str, block_type: str =
         return {"diff_count": len(diff_lines), "tmp_file": str(tmp_file)}
 
 
+# ─── Pi 运行时 Director 入口派生（adapters/pi.yaml: director_entry.source=derived）───
+# .pi/SYSTEM.md 是 Pi 实际加载的 Director 系统提示入口。历史上是手工维护（f5c041d），
+# 改 prompts/director.md 后不会自动跟——入口漂移无告警。现纳入生成器：
+# 从 .pi/agents/director.md（生成物）派生，规则见 PI_SYSTEM_* 常量与 derive_pi_system_md。
+# 与现有 SYSTEM.md 逐字节一致（2026-09-10 验证），改规则必须同步核对产物。
+
+PI_SYSTEM_HEADER = (
+    "> 📖 本文件是 Pi 运行时的 Director 系统提示入口，"
+    "由 .pi/agents/director.md（生成物，源为 prompts/director.md）派生。\n"
+    "> 运行时差异已校正：Pi 无 task tool——调度子 Agent 一律用 `subagent` 工具；"
+    "子 Agent 定义在 `.pi/agents/`。\n"
+)
+
+# 文末「Pi 运行时说明」节：Claude Code 措辞 → Pi 实际机制的换算表（人工撰写，非派生）
+PI_SYSTEM_FOOTER = """
+---
+
+## Pi 运行时说明（与上方 Claude Code 措辞的差异）
+
+本系统五运行时共用 `prompts/` 真相源，部分措辞是 Claude Code 视角。在 Pi 中按下表换算：
+
+| 文档中写的 | Pi 运行时实际 |
+|---|---|
+| task tool 派生子 Agent | `subagent` 工具（mode: single / parallel / chain） |
+| `.claude/agents/` | `.pi/agents/` |
+| `web_fetch` | `fetch_content`（pi-web-access 提供） |
+| `grep` / `glob` 搜索 | `bash`（rg / find） |
+
+可用子 Agent 角色：advisor、agent-manager、dev、finance、growth、guardian、product、qa、ui-ux（director 本身是主会话，不要调度自己）。
+
+`subagent` 调用示例参数：`{"mode": "single", "agent": "dev", "task": "<具体任务描述 + 验收标准>"}`。多角色流水线用 parallel（无依赖）或 chain（串行）模式。
+"""
+
+
+def derive_pi_system_md(director_md: str) -> str:
+    """从 .pi/agents/director.md（生成物）派生 .pi/SYSTEM.md 内容。
+
+    规则（与 f5c041d 手工版逐字节对齐）：
+    1. 去 YAML front matter
+    2. 去 mirror 注入行（sections.inject 产物，入口文件用 PI_SYSTEM_HEADER 替代）
+    3. 相对链接层级 +1：入口在 .pi/，比 .pi/agents/ 浅一层
+       （../routing.yaml → ../../routing.yaml；../../feedback → ../../../feedback）
+    4. 头部加 PI_SYSTEM_HEADER，尾部拼 PI_SYSTEM_FOOTER
+    """
+    body = strip_leading_front_matter(director_md)
+    body = body.replace(
+        "> 📖 此文件 mirror `prompts/director.md`。完整内容以 prompts/ 为准。\n\n", "", 1
+    )
+    # 顺序敏感：feedback 的 ../../ 必须先于 routing 的 ../ 处理，避免二次替换
+    body = body.replace("](../../feedback.schema.json)", "](../../../feedback.schema.json)")
+    body = body.replace("](../routing.yaml)", "](../../routing.yaml)")
+    return PI_SYSTEM_HEADER + "\n" + body.rstrip("\n") + "\n" + PI_SYSTEM_FOOTER + "\n"
+
+
+def generate_pi_system_entry(adapter_config: dict, write: bool = False) -> dict:
+    """生成/校验 .pi/SYSTEM.md。dry-run 时把 director 生成物写到 /tmp 再派生比对。"""
+    entry_file = PROJECT_DIR / adapter_config["director_entry"]["file"]
+    if write:
+        generate_role("director", adapter_config, write=True)  # 先刷新 .pi/agents/director.md
+        source = entry_file.parent / "agents" / "director.md"
+        derived = derive_pi_system_md(source.read_text(encoding="utf-8"))
+        changed = not entry_file.exists() or entry_file.read_text(encoding="utf-8") != derived
+        if changed:
+            entry_file.write_text(derived, encoding="utf-8")
+            print("  ✅ director 入口: 已写入 .pi/SYSTEM.md")
+        else:
+            print("  ✅ director 入口: .pi/SYSTEM.md 已是最新")
+        return {"file": str(entry_file), "written": True, "changed": changed}
+    # dry-run：director 生成物写入临时目录（复用 generate_role 的完整转换链）
+    tmp_dir = Path("/tmp/gen-pi-dryrun-agents")
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    cfg = copy.deepcopy(adapter_config)
+    cfg["agent_format"]["output_dir"] = str(tmp_dir) + "/"
+    buf, sys.stdout = sys.stdout, io.StringIO()  # 吞掉 generate_role 的写入日志
+    try:
+        generate_role("director", cfg, write=True)
+    finally:
+        sys.stdout = buf
+    derived = derive_pi_system_md((tmp_dir / "director.md").read_text(encoding="utf-8"))
+    if not entry_file.exists():
+        print("  director 入口: N/A（.pi/SYSTEM.md 不存在）")
+        return {"file": str(entry_file), "diff_count": "N/A"}
+    current = entry_file.read_text(encoding="utf-8")
+    diff_lines = [
+        l for l in difflib.unified_diff(
+            current.splitlines(), derived.splitlines(), lineterm="")
+        if l.startswith(("+", "-")) and not l.startswith(("+++", "---"))
+    ]
+    print(f"  director 入口 (.pi/SYSTEM.md): {len(diff_lines)} 行差异")
+    return {"file": str(entry_file), "diff_count": len(diff_lines)}
+
+
 def serialize_toml_agent(role: str, description: str, developer_instructions: str) -> str:
     """将 Agent 定义序列化为 TOML 字符串。使用 tomli-w 做健壮序列化，自动处理字符串转义。
 
@@ -321,7 +416,11 @@ def generate_role(role: str, adapter_config: dict, write: bool = False) -> dict:
         output_dir.mkdir(parents=True, exist_ok=True)
         with open(output_file, "w", encoding="utf-8") as f:
             f.write(content)
-        print(f"  ✅ {role}: 已写入 {output_file.relative_to(PROJECT_DIR)}")
+        try:
+            shown = output_file.relative_to(PROJECT_DIR)
+        except ValueError:
+            shown = output_file  # 允许生成到项目外（如 dry-run 临时目录）
+        print(f"  ✅ {role}: 已写入 {shown}")
         return {"role": role, "written": True}
     else:
         # dry-run：写到 /tmp，统计差异（临时文件后缀按运行时真实扩展名，codex 用 .toml）
@@ -434,6 +533,12 @@ def main():
         results = []
         for role in roles:
             results.append(generate_role(role, adapter_config, write=args.write))
+        # Director 入口派生文件（如 Pi 的 .pi/SYSTEM.md）：source=derived 时纳入生成链
+        entry_cfg = adapter_config.get("director_entry", {})
+        if entry_cfg.get("source") == "derived" and entry_cfg.get("file"):
+            print()
+            entry_result = generate_pi_system_entry(adapter_config, write=args.write)
+            results.append(entry_result)
         print()
         print("=== 说明 ===")
         print("  0 行 = 生成结果与现有版本完全一致")

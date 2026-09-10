@@ -55,8 +55,8 @@ jobs:
               python3 scripts/generate-agents.py --runtime="$runtime" --all --write
             fi
           done
-          # 检查是否有未提交的变化
-          if ! git diff --quiet -- .opencode/agents/ .claude/agents/ .pi/agents/ .gemini/agents/ .codex/agents/; then
+          # 检查是否有未提交的变化（.pi/SYSTEM.md：Director 入口派生文件，2026-09-10 纳入生成链）
+          if ! git diff --quiet -- .opencode/agents/ .claude/agents/ .pi/agents/ .pi/SYSTEM.md .gemini/agents/ .codex/agents/; then
             echo "❌ 生成产物与 prompts/ 不同步！"
             echo "   请在本地运行：python3 scripts/generate-agents.py --runtime=opencode --all --write"
             echo "   或配置 git hook：git config core.hooksPath .githooks"
