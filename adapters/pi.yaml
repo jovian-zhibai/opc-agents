@@ -137,12 +137,13 @@ scheduling:
       description: "Pi 运行时：主 Agent 调度 OPC 子 Agent 必须用 subagent 工具（single/parallel/chain），禁止用 herdr 工具。子 Agent 定义在 .pi/agents/"
 
 # ─── 文件保护机制 ───
+# 注：描述性元数据（无项目级配置文件消费此节）。Pi 无 .pi/config.json——
+# 权限/信任由全局 ~/.pi/agent/{settings,trust}.json 管理（2026-09-10 核实）。
 file_protection:
       mechanism: permission_system
-      config: .pi/config.json
 
 # ─── 检测规则 ───
+# Pi 无项目级配置文件（配置在全局 ~/.pi/agent/），检测只认 command + directory。
 detect:
       command: pi
       directory: .pi
-      config: .pi/config.json
