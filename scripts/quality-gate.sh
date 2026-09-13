@@ -376,6 +376,26 @@ fi
 
 echo ""
 
+# ---------- 5.5 全局污染检查（防越狱闸）----------
+# Pi 扩展/钩子必须纯项目级加载（.pi/extensions/），严禁复制到全局——
+# 否则任何目录启动的 Pi 会话都会被注入 opc 上下文（历史事故，见 commit afcbaec）。
+echo "🔒 全局污染检查："
+POLLUTION=0
+for f in "$HOME"/.pi/agent/extensions/opc-* "$HOME"/.pi/agent/agents/opc-* "$HOME"/.pi/agent/agents-bak; do
+  if [ -e "$f" ]; then
+    echo "  ❌ 发现项目产物泄漏到全局：${f} （应仅存在于仓库内，删除它）"
+    POLLUTION=$((POLLUTION + 1))
+  fi
+done
+if grep -q '"/Users/[^/]*"[[:space:]]*:[[:space:]]*true' "$HOME/.pi/agent/trust.json" 2>/dev/null; then
+  echo "  ⚠️  ~/.pi/agent/trust.json 信任了整个家目录——Pi 项目隔离失效，建议收窄到具体项目目录"
+fi
+if [ $POLLUTION -eq 0 ]; then
+  echo "  ✅ 无项目产物泄漏到 Pi 全局配置"
+else
+  ERRORS=$((ERRORS + POLLUTION))
+fi
+
 # ---------- 6. 知识库路径检查 ----------
 echo "📚 知识库路径检查："
 CLAUDE_MD="$PROJECT_DIR/CLAUDE.md"
