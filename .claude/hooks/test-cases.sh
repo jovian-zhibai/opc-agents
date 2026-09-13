@@ -28,8 +28,8 @@ check() {
 echo "=== PreToolUse Hook 自检 ==="
 echo ""
 
-check "绝对路径 prompts/"       "Write" "/Users/souljian/code/opc/opc-agents/prompts/qa.md" 1
-check "绝对路径 .opencode/agents/" "Edit" "/Users/souljian/code/opc/opc-agents/.opencode/agents/director.md" 1
+check "绝对路径 prompts/"       "Write" "$(pwd)/prompts/qa.md" 1
+check "绝对路径 .opencode/agents/" "Edit" "$(pwd)/.opencode/agents/director.md" 1
 check "./prompts/ 前缀"         "Write" "./prompts/qa.md" 1
 check "CLAUDE.md"               "Write" "CLAUDE.md" 1
 check "routing.yaml"            "Edit"  "routing.yaml" 1

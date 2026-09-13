@@ -278,12 +278,13 @@ mkdir -p $OPC_WORK_PATH $OPC_KNOWLEDGE_PATH
 
 ### 多运行时文件保护（预期设计，勿"修复"）
 
-Director 红线要求不直接改系统文件。各运行时的物理拦截力度已对齐：
+Director 红线要求不直接改系统文件。**物理拦截强度因运行时原生能力而异**（此差异为预期设计，勿为“求一致”给其它运行时强加 hook）：
 
 | 运行时 | 拦截方式 |
 |--------|----------|
 | Claude Code | `.claude/settings.json` PreToolUse hook（protect-prompts.py）对 `prompts/`、`.opencode/agents/`、`CLAUDE.md`、`routing.yaml`、`feedback.schema.json`、`opencode.json` 的 Write/Edit 硬拦截（exit 1） |
 | OpenCode | `opencode.json` permission.edit 对相同路径设为 `deny`（不允许、不询问） |
+| Pi / Gemini / Codex | 无物理拦截，依赖 Director 红线自觉（约定级） |
 
-这是**预期设计**：Director 改系统文件的通道在各运行时都被物理切断，不走"LLM 自觉"或"弹窗询问"。
+这是**预期设计**：在具备物理拦截的运行时（Claude Code / OpenCode），Director 改系统文件的通道被物理切断，不走"LLM 自觉"或"弹窗询问"。
 受保护文件的修改一律由创始人手动进行，或经正式流程（调度 AgentManager/Dev 通过其它方式执行）。
