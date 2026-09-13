@@ -67,3 +67,6 @@ output/
 work/*
 !work/session-notes.md
 benchmark/results/
+
+# OpenCode skills 备份目录（清理时的快照，不进仓库、不参与 secret 扫描）
+.opencode/skills.bak-*/
