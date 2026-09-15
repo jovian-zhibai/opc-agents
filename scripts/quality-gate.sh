@@ -387,8 +387,26 @@ for f in "$HOME"/.pi/agent/extensions/opc-* "$HOME"/.pi/agent/agents/opc-* "$HOM
     POLLUTION=$((POLLUTION + 1))
   fi
 done
-if grep -q '"/Users/[^/]*"[[:space:]]*:[[:space:]]*true' "$HOME/.pi/agent/trust.json" 2>/dev/null; then
-  echo "  ⚠️  ~/.pi/agent/trust.json 信任了整个家目录——Pi 项目隔离失效，建议收窄到具体项目目录"
+# trust.json 过宽信任检查（两档：祖先前缀=硬失败；无子孙浅目录=警告）
+TRUST_REPORT=$(python3 -c "
+import json, os
+p = os.path.expanduser('~/.pi/agent/trust.json')
+if not os.path.exists(p): raise SystemExit(0)
+t = json.load(open(p))
+trusted = [k for k, v in t.items() if v and k.startswith('/')]
+ancestors = [k for k in trusted if any(k != x and x.startswith(k.rstrip('/') + '/') for x in trusted)]
+shallow = [k for k in trusted if k not in ancestors and len([s for s in k.split('/') if s]) <= 3]
+if ancestors: print('A:' + ','.join(ancestors))
+if shallow: print('W:' + ','.join(shallow))
+" 2>/dev/null)
+A_LIST=$(printf '%s\n' "$TRUST_REPORT" | sed -n 's/^A://p')
+W_LIST=$(printf '%s\n' "$TRUST_REPORT" | sed -n 's/^W://p')
+if [ -n "$A_LIST" ]; then
+  echo "  ❌ trust.json 过宽信任（其它信任项的祖先）：$A_LIST"
+  POLLUTION=$((POLLUTION + 1))
+fi
+if [ -n "$W_LIST" ]; then
+  echo "  ⚠️  trust.json 无子孙浅目录信任（depth≤3，未来新增项目将免确认）：$W_LIST"
 fi
 if [ $POLLUTION -eq 0 ]; then
   echo "  ✅ 无项目产物泄漏到 Pi 全局配置"
