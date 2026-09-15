@@ -33,6 +33,12 @@ const HOOK_SCRIPT = path.join(PROJECT_DIR, "scripts", "opc_session_hook.py")
 
 export default function (pi: any) {
   pi.on("before_agent_start", async (event: any, _ctx: any) => {
+    // 自守卫：仅当在本项目根或其子目录启动时才注入（防全局副本跨目录生效）
+    const projectRoot = path.resolve(PROJECT_DIR)
+    const cwd = path.resolve(process.cwd())
+    if (cwd !== projectRoot && !cwd.startsWith(projectRoot + path.sep)) {
+      return
+    }
     try {
       // 检查共享核心脚本是否存在
       try {
