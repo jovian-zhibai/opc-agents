@@ -33,7 +33,7 @@ if echo "$STAGED" | grep -qE "$GEN_PATTERN"; then
 fi
 
 # ─── 2. quality-gate：检测到规则文件改动时 ───
-RULE_FILES_PATTERN='^(CLAUDE\.md|prompts/|\.opencode/|routing\.yaml|scripts/|adapters/|\.githooks/)'
+RULE_FILES_PATTERN='^(CLAUDE\.md|prompts/|\.opencode/|\.pi/|\.claude/|\.gemini/|\.codex/|routing\.yaml|scripts/|adapters/|\.githooks/)'
 if echo "$STAGED" | grep -qE "$RULE_FILES_PATTERN"; then
     echo "🔍 检测到规则文件改动，运行 quality-gate 验证..."
     if ! bash scripts/quality-gate.sh >/tmp/opc-gate-check.log 2>&1; then
